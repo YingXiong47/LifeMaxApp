@@ -1,7 +1,6 @@
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { DemoAuthCard } from "@/components/ui/demo-auth-card";
 import { SupabaseAuthCard } from "@/components/ui/supabase-auth-card";
-import { SignUp } from "@clerk/nextjs";
 import { getAuthMode } from "@/lib/auth/config";
 import { getAuthSummary } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
@@ -19,10 +18,13 @@ export default async function SignUpPage() {
     <>
       <MarketingHeader />
       <main className="page-shell">
-        {authMode === "clerk" ? (
-          <SignUp />
-        ) : authMode === "supabase" ? (
+        {authMode === "supabase" ? (
           <SupabaseAuthCard mode="sign-up" />
+        ) : authMode === "clerk" ? (
+          await (async () => {
+            const { SignUp } = await import("@clerk/nextjs");
+            return <SignUp />;
+          })()
         ) : (
           <DemoAuthCard mode="sign-up" />
         )}

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { User } from "@supabase/supabase-js";
 import { getAuthMode } from "@/lib/auth/config";
 import { SUPABASE_ACCESS_COOKIE, SUPABASE_REFRESH_COOKIE } from "@/lib/auth/supabase-cookies";
@@ -38,6 +37,7 @@ export async function getAuthSummary(): Promise<AuthSummary> {
     };
   }
 
+  const { auth, currentUser } = await import("@clerk/nextjs/server");
   const { userId } = await auth();
 
   if (!userId) {

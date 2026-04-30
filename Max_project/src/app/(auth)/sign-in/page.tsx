@@ -1,7 +1,6 @@
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import { DemoAuthCard } from "@/components/ui/demo-auth-card";
 import { SupabaseAuthCard } from "@/components/ui/supabase-auth-card";
-import { SignIn } from "@clerk/nextjs";
 import { getAuthMode } from "@/lib/auth/config";
 import { getAuthSummary } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
@@ -19,10 +18,13 @@ export default async function SignInPage() {
     <>
       <MarketingHeader />
       <main className="page-shell">
-        {authMode === "clerk" ? (
-          <SignIn />
-        ) : authMode === "supabase" ? (
+        {authMode === "supabase" ? (
           <SupabaseAuthCard mode="sign-in" />
+        ) : authMode === "clerk" ? (
+          await (async () => {
+            const { SignIn } = await import("@clerk/nextjs");
+            return <SignIn />;
+          })()
         ) : (
           <DemoAuthCard mode="sign-in" />
         )}
