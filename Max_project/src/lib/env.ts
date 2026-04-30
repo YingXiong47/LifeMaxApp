@@ -16,6 +16,7 @@ function optionalUrl() {
 
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: optionalString(),
+  NEXT_PUBLIC_SITE_URL: optionalUrl(),
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalString()
 });
@@ -33,12 +34,14 @@ const serverEnvSchema = clientEnvSchema.extend({
 
 const parsedClientEnv = clientEnvSchema.parse({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 });
 
 const parsedServerEnv = serverEnvSchema.parse({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
@@ -53,6 +56,7 @@ const parsedServerEnv = serverEnvSchema.parse({
 
 export const clientEnv = {
   clerkPublishableKey: parsedClientEnv.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  siteUrl: parsedClientEnv.NEXT_PUBLIC_SITE_URL,
   supabaseUrl: parsedClientEnv.NEXT_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: parsedClientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY
 };

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { clientEnv } from "@/lib/env";
 import { getBrowserSupabaseClient } from "@/lib/supabase/client";
 
 export function SupabaseForgotPasswordCard() {
@@ -25,8 +26,8 @@ export function SupabaseForgotPasswordCard() {
     setSubmitting(true);
 
     try {
-      const redirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined;
+      const siteUrl = clientEnv.siteUrl || (typeof window !== "undefined" ? window.location.origin : undefined);
+      const redirectTo = siteUrl ? new URL("/reset-password", siteUrl).toString() : undefined;
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo
       });
