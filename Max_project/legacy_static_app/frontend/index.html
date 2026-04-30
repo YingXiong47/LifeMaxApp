@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LifeMax OS</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">LM</span>
+        <span>
+          <strong>LifeMax OS</strong>
+          <small>Multi-agent planning system</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="./index.html" aria-current="page">App</a>
+        <a href="./about.html">About</a>
+        <a href="./contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" id="load-founder">Founder Persona</button>
+        <button type="button" id="load-reset">Reset Persona</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-panel">
+        <div class="hero-overlay">
+          <div class="hero-copy">
+            <p class="eyebrow">Adaptive Agent Workspace</p>
+            <h1>Build a profile, generate a plan, and track execution over time.</h1>
+            <p class="lede">
+              LifeMax OS turns guided answers into a synthesized user profile, a sequenced roadmap, measurable tasks, and a living tracker with review loops.
+            </p>
+            <div class="hero-actions">
+              <a class="button-link primary" href="#workspace">Start assessment</a>
+              <a class="button-link" href="#dashboard">See the dashboard</a>
+            </div>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <span class="metric-label">Workflow status</span>
+              <strong class="metric-value" id="workflow-status">Ready for intake</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Agent confidence</span>
+              <strong class="metric-value" id="hero-confidence">--</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Active tasks</span>
+              <strong class="metric-value" id="hero-tasks">0</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel workspace-panel" id="workspace">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Guided Intake</p>
+            <h2>Tell the agents what kind of operating system your life needs</h2>
+          </div>
+          <div class="controls">
+            <button type="button" id="load-example">Load Example</button>
+            <button type="button" id="reset-state">Reset</button>
+            <button type="button" id="download-package">Export JSON</button>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <aside class="wizard-column">
+            <div class="stepper" id="stepper"></div>
+            <div class="wizard-card">
+              <div class="wizard-topline">
+                <div>
+                  <p class="wizard-kicker" id="step-kicker">Step 1</p>
+                  <h3 id="step-title">Goal signal</h3>
+                </div>
+                <div class="progress-shell">
+                  <div class="progress-bar" id="progress-bar"></div>
+                </div>
+              </div>
+              <p class="wizard-description" id="step-description"></p>
+              <form id="lifemax-form" class="wizard-form">
+                <div id="wizard-fields" class="wizard-fields"></div>
+                <div class="wizard-nav">
+                  <button type="button" id="prev-step">Back</button>
+                  <button type="button" id="next-step" class="primary">Next</button>
+                  <button type="submit" id="run-orchestrator" class="primary">Build my system</button>
+                </div>
+              </form>
+            </div>
+          </aside>
+
+          <section class="dashboard-column" id="dashboard">
+            <div class="summary-grid" id="package-summary"></div>
+
+            <div class="panel-toolbar">
+              <div class="tab-bar" id="tab-bar" role="tablist" aria-label="Dashboard panels">
+                <button type="button" class="tab-button active" data-tab="overview">Overview</button>
+                <button type="button" class="tab-button" data-tab="profile">Profile</button>
+                <button type="button" class="tab-button" data-tab="roadmap">Roadmap</button>
+                <button type="button" class="tab-button" data-tab="tracker">Tracker</button>
+                <button type="button" class="tab-button" data-tab="agents">Agents</button>
+              </div>
+              <div class="controls">
+                <button type="button" id="generate-review">Weekly Review</button>
+                <button type="button" id="rebuild-plan">Rebuild Plan</button>
+              </div>
+            </div>
+
+            <div id="dashboard-content" class="dashboard-content"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">System Activity</p>
+            <h2>Milestones, assumptions, and execution trace</h2>
+          </div>
+        </div>
+        <div class="triple-grid">
+          <div>
+            <h3 class="section-title">Milestones</h3>
+            <div id="milestones" class="stack"></div>
+          </div>
+          <div>
+            <h3 class="section-title">Assumptions and iterations</h3>
+            <div id="iterations" class="stack"></div>
+          </div>
+          <div>
+            <h3 class="section-title">Agent logs</h3>
+            <div id="logs" class="stack"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+  </html>

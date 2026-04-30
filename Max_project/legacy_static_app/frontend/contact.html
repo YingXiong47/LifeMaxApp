@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contact • LifeMax OS</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">LM</span>
+        <span>
+          <strong>LifeMax OS</strong>
+          <small>Multi-agent planning system</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="./index.html">App</a>
+        <a href="./about.html">About</a>
+        <a href="./contact.html" aria-current="page">Contact</a>
+      </nav>
+    </header>
+
+    <section class="page-hero">
+      <div class="hero-overlay">
+        <div class="page-hero-copy">
+          <p class="eyebrow">Contact</p>
+          <h1>Send product feedback, partnership ideas, or implementation requests.</h1>
+          <p>
+            This prototype stores contact messages locally so the page behaves like a real product surface even without a backend.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <section class="panel">
+        <div class="contact-grid">
+          <article class="contact-card">
+            <strong>Contact the team</strong>
+            <form id="contact-form" class="wizard-fields">
+              <div class="field-group">
+                <label for="contact-name">Name</label>
+                <input id="contact-name" name="name" class="text-input" required>
+              </div>
+              <div class="field-group">
+                <label for="contact-email">Email</label>
+                <input id="contact-email" name="email" type="email" class="text-input" required>
+              </div>
+              <div class="field-group">
+                <label for="contact-topic">Topic</label>
+                <select id="contact-topic" name="topic" class="select-input">
+                  <option>Feedback</option>
+                  <option>Implementation request</option>
+                  <option>Partnership</option>
+                  <option>Bug report</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="contact-message">Message</label>
+                <textarea id="contact-message" name="message" rows="5" class="text-area" required></textarea>
+              </div>
+              <div class="controls">
+                <button type="submit" class="primary">Save message</button>
+                <a class="button-link" href="mailto:hello@lifemax.local">Open email client</a>
+              </div>
+              <div id="contact-status" class="meta"></div>
+            </form>
+          </article>
+
+          <div class="stack">
+            <article class="contact-card">
+              <strong>Best for</strong>
+              <p class="meta">Feature requests, workflow ideas, integration priorities, and product design feedback.</p>
+            </article>
+            <article class="contact-card">
+              <strong>Frequently asked</strong>
+              <div class="message-list">
+                <div class="faq-row">
+                  <strong>Does this send data anywhere?</strong>
+                  <div class="meta">Not in this prototype. Messages are stored locally in browser storage.</div>
+                </div>
+                <div class="faq-row">
+                  <strong>Can this become a real SaaS product?</strong>
+                  <div class="meta">Yes. The current structure is already agent-oriented and ready for backend expansion.</div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Local Inbox</p>
+            <h2>Saved messages in this browser</h2>
+          </div>
+        </div>
+        <div id="contact-messages" class="message-list"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./contact.js"></script>
+  </body>
+  </html>
