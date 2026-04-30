@@ -1288,14 +1288,18 @@ ul { margin: 0; padding-left: 1.1rem; }
 .settings-panel {
   min-height: 100%;
 }
+.settings-panel-behavior {
+  grid-column: span 2;
+}
 .settings-panel-wide {
   grid-column: span 2;
 }
 .settings-choice-grid {
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 .settings-mode-card {
-  min-height: 176px;
+  min-height: 0;
+  width: 100%;
 }
 .app-frame[data-appearance="midnight"] .workspace-hero-art,
 .app-frame[data-appearance="ember"] .workspace-hero-art {
@@ -1560,6 +1564,7 @@ ul { margin: 0; padding-left: 1.1rem; }
   .empty-workspace-preview-row {
     grid-template-columns: 1fr;
   }
+  .settings-panel-behavior,
   .settings-panel-wide {
     grid-column: span 1;
   }
