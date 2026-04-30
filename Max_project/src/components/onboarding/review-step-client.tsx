@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppAuthSummary } from "@/components/providers/app-providers";
 import { useWorkspaceState } from "@/components/providers/workspace-provider";
-import { getDefaultDemoState, saveDemoState } from "@/lib/demo/storage";
+import { DemoState, getDefaultDemoState, saveDemoState } from "@/lib/demo/storage";
 import { getPlanningModeDetails, planningModeOptions } from "@/lib/planning-mode";
 import { stableListKey } from "@/lib/ui/stable-list-key";
 import { navigateWithFallback } from "@/lib/navigation";
 import { loadResolvedOnboardingState } from "@/lib/onboarding/client-state";
+import type { WorkspacePlanningMode } from "@/lib/workspace/state";
 
 export function ReviewStepClient() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export function ReviewStepClient() {
   }, [authSummary.mode, authSummary.userId, workspace.state.onboardingAnswers]);
 
   const answers = state.onboardingAnswers || {};
-  const selectedPlanningMode = state.preferences?.planningMode === "ai" ? "ai" : "stable";
+  const selectedPlanningMode: WorkspacePlanningMode = state.preferences?.planningMode === "ai" ? "ai" : "stable";
   const selectedPlanningModeDetails = getPlanningModeDetails(selectedPlanningMode);
 
   const sections = [
@@ -117,11 +118,11 @@ export function ReviewStepClient() {
                   type="button"
                   className={`choice-card ${selectedPlanningMode === option.id ? "active" : ""}`}
                   onClick={() => {
-                    const nextState = {
+                    const nextState: DemoState = {
                       ...state,
                       preferences: {
                         ...state.preferences,
-                        planningMode: option.id as "stable" | "ai"
+                        planningMode: option.id
                       }
                     };
                     setState(nextState);
@@ -160,7 +161,7 @@ export function ReviewStepClient() {
             type="button"
             className="button-link primary"
             onClick={() => {
-              const nextState = {
+              const nextState: DemoState = {
                 ...state,
                 preferences: {
                   ...state.preferences,
