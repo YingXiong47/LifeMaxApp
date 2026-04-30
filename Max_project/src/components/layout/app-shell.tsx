@@ -149,14 +149,23 @@ export function AppShell({
   const planningMode = workspaceState.preferences?.planningMode === "ai" ? "ai" : "stable";
   const planningModeDetails = getPlanningModeDetails(planningMode);
 
-  const signedInLabel = authSummary.user ? `${authSummary.user.name} • ${authSummary.user.email}` : null;
+  const signedInLabel = authSummary.user
+    ? authSummary.user.name?.trim()
+      ? `${authSummary.user.name} • ${authSummary.user.email}`
+      : authSummary.user.email
+    : null;
+  const sessionLabel =
+    session?.authenticated && session.user
+      ? session.user.name?.trim()
+        ? `${session.user.name} • ${session.user.email}`
+        : session.user.email
+      : null;
   const accountLabel =
     signedInLabel ||
-    (session?.authenticated && session.user
-        ? `${session.user.name} • ${session.user.email}`
-        : authSummary.mode === "supabase"
-          ? "Email/password auth is configured, but no active session is attached to this workspace."
-          : "No production auth configured yet. Continue in demo mode or connect Supabase or Clerk.");
+    sessionLabel ||
+    (authSummary.mode === "supabase"
+      ? "Email/password auth is configured, but no active session is attached to this workspace."
+      : "No production auth configured yet. Continue in demo mode or connect Supabase or Clerk.");
 
   return (
     <div className="app-frame" data-appearance={appearance}>

@@ -167,12 +167,19 @@ export function clearWorkspaceFallbackState() {
 }
 
 export function createDemoSession(name: string, email: string): DemoSession {
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  const derivedName =
+    trimmedName ||
+    (trimmedEmail.includes("@") ? trimmedEmail.split("@")[0] : "") ||
+    "Demo member";
+
   return {
     authenticated: true,
     user: {
       id: `demo-${Date.now()}`,
-      name,
-      email,
+      name: derivedName,
+      email: trimmedEmail,
       mode: "demo"
     }
   };

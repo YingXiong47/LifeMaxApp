@@ -9,14 +9,24 @@ export function DemoAuthCard({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const deployedWithoutAuth = process.env.NODE_ENV === "production";
+  const heading = deployedWithoutAuth
+    ? mode === "sign-in"
+      ? "Authentication is not configured on this deployment"
+      : "Account creation is not configured on this deployment"
+    : mode === "sign-in"
+      ? "Return to your workspace"
+      : "Create your LifeMax OS account";
+  const description = deployedWithoutAuth
+    ? "This deployment fell back to demo mode because Supabase email/password auth is not configured. Add the Supabase project URL and anon key in the deployment environment variables to restore the real sign-in form with password fields."
+    : "This scaffold runs in demo auth mode locally. In production, connect Clerk or Supabase Auth and replace this with a real protected session flow.";
+  const primaryLabel = mode === "sign-in" ? "Enter demo workspace" : "Create demo workspace";
 
   return (
     <div className="auth-card">
-      <p className="eyebrow">{mode === "sign-in" ? "Sign in" : "Create account"}</p>
-      <h1>{mode === "sign-in" ? "Return to your workspace" : "Create your LifeMax OS account"}</h1>
-      <p className="lede">
-        This scaffold runs in demo auth mode locally. In production, connect Clerk or Supabase Auth and replace this with a real protected session flow.
-      </p>
+      <p className="eyebrow">{deployedWithoutAuth ? "Demo fallback" : mode === "sign-in" ? "Sign in" : "Create account"}</p>
+      <h1>{heading}</h1>
+      <p className="lede">{description}</p>
       <div className="wizard-fields">
         {mode === "sign-up" ? (
           <div className="field-group">
@@ -38,6 +48,11 @@ export function DemoAuthCard({ mode }: { mode: "sign-in" | "sign-up" }) {
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
+        {deployedWithoutAuth ? (
+          <p className="warn">
+            Password sign-in is unavailable here because this deployment is missing Supabase auth configuration.
+          </p>
+        ) : null}
         <div className="controls">
           <button
             type="button"
@@ -51,7 +66,7 @@ export function DemoAuthCard({ mode }: { mode: "sign-in" | "sign-up" }) {
               router.push("/app");
             }}
           >
-            Continue in demo mode
+            {primaryLabel}
           </button>
           <Link className="button-link" href={mode === "sign-in" ? "/sign-up" : "/sign-in"}>
             {mode === "sign-in" ? "Create account" : "Already have an account?"}
