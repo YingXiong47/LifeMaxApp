@@ -267,7 +267,10 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
                         control={form.control}
                         name={option.value}
                         render={({ field: controllerField }) => (
-                          <Checkbox checked={Boolean(controllerField.value)} onCheckedChange={controllerField.onChange} />
+                          <Checkbox
+                            checked={Boolean(controllerField.value)}
+                            onCheckedChange={(checked) => controllerField.onChange(checked === true)}
+                          />
                         )}
                       />
                       <span>{option.label}</span>

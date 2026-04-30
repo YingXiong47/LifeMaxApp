@@ -612,6 +612,8 @@ export function ReflectionOverviewCard({ state }: { state: DemoState }) {
   const lastCompletedSummary = visibleCategories.length
     ? `${visibleCategories.join(", ")}${hiddenCategoryCount > 0 ? ` +${hiddenCategoryCount} more` : ""}`
     : "Start with the area that is currently leaking.";
+  const dailyActionClass = !todayDone ? "button-link primary" : "button-link";
+  const weeklyActionClass = todayDone && !weeklyDone ? "button-link primary" : "button-link";
 
   return (
     <ReflectionPanel
@@ -657,10 +659,10 @@ export function ReflectionOverviewCard({ state }: { state: DemoState }) {
       ) : null}
 
       <div className="controls">
-        <Link className="button-link primary" href="/app/reflection?mode=daily">
+        <Link className={dailyActionClass} href="/app/reflection?mode=daily">
           Start daily check-in
         </Link>
-        <Link className="button-link" href="/app/reflection?mode=weekly">
+        <Link className={weeklyActionClass} href="/app/reflection?mode=weekly">
           Start weekly review
         </Link>
         <Link className="button-link" href="/app/reflection?tab=history">

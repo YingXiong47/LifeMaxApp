@@ -1027,21 +1027,68 @@ function AgentReply({ content }: { content: string }) {
 function EmptyWorkspace() {
   return (
     <div className="workspace-stack">
-      <section className="workspace-hero workspace-hero-accent">
+      <section className="workspace-hero workspace-hero-accent empty-workspace-hero">
         <div className="hero-copy-block">
           <p className="eyebrow">No active workspace</p>
-          <h2>Finish the assessment and initialize your first operating system.</h2>
+          <h2>Start the assessment and let the app build your first operating system.</h2>
           <p>
-            The app pages sharpen up once there is a real plan to work from. Right now the workspace is waiting on
-            your first completed run.
+            Once the intake is complete, this page turns into your weekly plan, progress tracker, reflection loop, and
+            agent workspace. Right now it is waiting for the first real run.
           </p>
+          <div className="controls">
+            <Link className="button-link primary" href="/onboarding/welcome">
+              Start assessment
+            </Link>
+            <Link className="button-link" href="/app/settings">
+              Review settings
+            </Link>
+          </div>
+          <div className="workspace-pills">
+            <span className="pill">Assessment</span>
+            <span className="pill">Weekly plan</span>
+            <span className="pill">Progress tracker</span>
+            <span className="pill">Reflection loop</span>
+          </div>
         </div>
-        <div className="workspace-hero-art">
+        <div className="empty-workspace-showcase" aria-hidden="true">
+          <article className="empty-workspace-preview-card lead">
+            <span className="muted">Week one</span>
+            <strong>Protect energy, clean up the schedule, and lock one visible career win.</strong>
+            <p>Example output preview</p>
+            <div className="empty-workspace-preview-lines">
+              <span />
+              <span />
+              <span />
+            </div>
+          </article>
+          <div className="empty-workspace-preview-row">
+            <article className="empty-workspace-preview-card compact">
+              <span className="muted">Reflection</span>
+              <strong>Daily + weekly review</strong>
+            </article>
+            <article className="empty-workspace-preview-card compact">
+              <span className="muted">Agents</span>
+              <strong>Planner, tracker, quality gate</strong>
+            </article>
+          </div>
           <div className="workspace-orb large" />
           <div className="workspace-orb small" />
           <div className="workspace-wave" />
         </div>
       </section>
+
+      <div className="workspace-grid workspace-grid-two empty-workspace-grid">
+        <article className="mini-stat-card">
+          <span className="muted">What you get</span>
+          <strong>A plan that is tied to your actual constraints.</strong>
+          <p>The first run builds a weekly system instead of dumping generic motivation onto the page.</p>
+        </article>
+        <article className="mini-stat-card">
+          <span className="muted">What changes next</span>
+          <strong>These blank panels fill with real work once the assessment is complete.</strong>
+          <p>Progress, reflections, and agent review only become useful after the workspace has a real baseline.</p>
+        </article>
+      </div>
     </div>
   );
 }
@@ -2411,120 +2458,114 @@ export function AppDataView({ view }: { view: View }) {
           </div>
         </section>
 
-        <div className="workspace-columns">
+        <div className="workspace-columns settings-columns">
           <div className="workspace-main-column">
-            <Panel title="Appearance" eyebrow="Theme options">
-              <div className="stack-list">
-                <div className="field-group">
-                  <label htmlFor="appearance-select">Appearance</label>
-                  <select
-                    id="appearance-select"
-                    className="select-input"
-                    value={state.preferences.appearance}
-                    onChange={(event) =>
-                      setAndSave({
-                        ...state,
-                        preferences: {
-                          ...state.preferences,
-                          appearance: event.target.value as DemoAppearance,
-                          appearanceSelection: "user"
-                        }
-                      })
-                    }
-                  >
-                    {appearanceOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="theme-card theme-card-preview active">
-                  <div className="theme-swatches">
-                    {selectedAppearance.colors.map((color) => (
-                      <span key={color} style={{ background: color }} />
-                    ))}
-                  </div>
-                  <strong>{selectedAppearance.title}</strong>
-                  <p>{selectedAppearance.subtitle}</p>
-                </div>
-              </div>
-            </Panel>
-
-            <Panel title="Plan generation mode" eyebrow="Run behavior">
-              <div className="stack-list">
-                <p className="muted">
-                  Choose whether new plans should prioritize reliability or a more experimental multi-agent run.
-                </p>
-                <div className="choice-grid">
-                  {planningModeOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      className={`choice-card ${planningMode === option.id ? "active" : ""}`}
-                      onClick={() =>
+            <div className="workspace-grid workspace-grid-two settings-card-grid">
+              <Panel title="Appearance" eyebrow="Theme options">
+                <div className="stack-list">
+                  <div className="field-group">
+                    <label htmlFor="appearance-select">Appearance</label>
+                    <select
+                      id="appearance-select"
+                      className="select-input"
+                      value={state.preferences.appearance}
+                      onChange={(event) =>
                         setAndSave({
                           ...state,
                           preferences: {
                             ...state.preferences,
-                            planningMode: option.id
+                            appearance: event.target.value as DemoAppearance,
+                            appearanceSelection: "user"
                           }
                         })
                       }
                     >
-                      <strong>
-                        {option.title} <small>{option.eyebrow}</small>
-                      </strong>
-                      <small>{option.subtitle}</small>
-                    </button>
-                  ))}
+                      {appearanceOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="theme-card theme-card-preview active">
+                    <div className="theme-swatches">
+                      {selectedAppearance.colors.map((color) => (
+                        <span key={color} style={{ background: color }} />
+                      ))}
+                    </div>
+                    <strong>{selectedAppearance.title}</strong>
+                    <p>{selectedAppearance.subtitle}</p>
+                  </div>
                 </div>
-                <p className="field-note">
-                  Current selection: <strong>{planningModeDetails.title}</strong>. {planningModeDetails.detail}
-                </p>
-              </div>
-            </Panel>
+              </Panel>
 
-            <Panel title="Persistence" eyebrow="Data layer">
-              <div className="stack-list">
-                <div className="line-between">
-                  <span>Current storage</span>
-                  <span
-                    className={`pill ${
-                      diagnostics.mode === "supabase"
-                        ? "good"
+              <Panel title="Plan generation mode" eyebrow="Run behavior">
+                <div className="stack-list">
+                  <p className="muted">
+                    Choose whether new plans should prioritize reliability or a more experimental multi-agent run.
+                  </p>
+                  <div className="choice-grid">
+                    {planningModeOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={`choice-card ${planningMode === option.id ? "active" : ""}`}
+                        onClick={() =>
+                          setAndSave({
+                            ...state,
+                            preferences: {
+                              ...state.preferences,
+                              planningMode: option.id
+                            }
+                          })
+                        }
+                      >
+                        <strong>
+                          {option.title} <small>{option.eyebrow}</small>
+                        </strong>
+                        <small>{option.subtitle}</small>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="field-note">
+                    Current selection: <strong>{planningModeDetails.title}</strong>. {planningModeDetails.detail}
+                  </p>
+                </div>
+              </Panel>
+
+              <Panel title="Persistence" eyebrow="Data layer">
+                <div className="stack-list">
+                  <div className="line-between">
+                    <span>Current storage</span>
+                    <span
+                      className={`pill ${
+                        diagnostics.mode === "supabase"
+                          ? "good"
+                          : diagnostics.mode === "local-fallback"
+                            ? "warn"
+                            : ""
+                      }`}
+                    >
+                      {diagnostics.mode === "supabase"
+                        ? "Supabase"
                         : diagnostics.mode === "local-fallback"
-                          ? "warn"
-                          : ""
-                    }`}
-                  >
-                    {diagnostics.mode === "supabase"
-                      ? "Supabase"
-                      : diagnostics.mode === "local-fallback"
-                        ? "Local recovery cache"
-                        : "Browser local storage"}
-                  </span>
+                          ? "Local recovery cache"
+                          : "Browser local storage"}
+                    </span>
+                  </div>
+                  <p className="muted">
+                    {authSummary.mode === "supabase"
+                      ? "Assessment results, weekly plans, reflections, settings, progress logs, and agent runs are saved against the authenticated Supabase user id."
+                      : "The demo workspace is intentionally local-first and should not be confused with protected production storage."}
+                  </p>
+                  <div className="workspace-pills">
+                    <span className="pill">{state.history.length} saved runs</span>
+                    <span className="pill">{state.checkIns.length} saved check-ins</span>
+                    <span className="pill">{diagnostics.connectionStatus}</span>
+                  </div>
                 </div>
-                <p className="muted">
-                  {authSummary.mode === "supabase"
-                    ? "Assessment results, weekly plans, reflections, settings, progress logs, and agent runs are persisted against the authenticated Supabase user id. If that write path fails, the app switches into visible recovery-cache mode instead of pretending the save succeeded."
-                    : "The demo workspace is intentionally local-first and should not be confused with protected production storage."}
-                </p>
-              </div>
-            </Panel>
-
-            <Panel title="Agent infrastructure" eyebrow="Production shape">
-              <ul className="clean-list">
-                <li>OpenAI Agents SDK for agent contracts and structured output.</li>
-                <li>Inngest for workflow retries, async orchestration, and durable events.</li>
-                <li>Evaluation gates before downstream planning and before final package assembly.</li>
-                <li>Structured traces tied to each run so failures are inspectable instead of opaque.</li>
-              </ul>
-            </Panel>
-
-            <Panel title="Danger zone" eyebrow="Account controls">
-              <SettingsDangerZone />
-            </Panel>
+              </Panel>
+            </div>
           </div>
 
           <div className="workspace-side-column">
@@ -2551,56 +2592,65 @@ export function AppDataView({ view }: { view: View }) {
 
             {process.env.NODE_ENV !== "production" ? (
               <Panel title="Developer diagnostics" eyebrow="Debug storage">
-                <div className="stack-list">
-                  <div className="line-between">
-                    <span>Authenticated user</span>
-                    <span className="pill">{diagnostics.userId || "none"}</span>
-                  </div>
-                  <div className="line-between">
-                    <span>Supabase connection</span>
+                <details className="compact-plan">
+                  <summary>
+                    <div>
+                      <strong>Open storage diagnostics</strong>
+                      <p className="muted">Developer-only table, connection, and write-path detail.</p>
+                    </div>
                     <span className={`pill ${diagnostics.connectionStatus === "connected" ? "good" : ""}`}>
                       {diagnostics.connectionStatus}
                     </span>
-                  </div>
-                  <div className="line-between">
-                    <span>Last successful read</span>
-                    <span className="muted">{diagnostics.lastSuccessfulRead || "None yet"}</span>
-                  </div>
-                  <div className="line-between">
-                    <span>Last successful write</span>
-                    <span className="muted">{diagnostics.lastSuccessfulWrite || "None yet"}</span>
-                  </div>
-                  <div className="line-between">
-                    <span>Fallback local storage</span>
-                    <span className="pill">{diagnostics.fallbackLocalStorage ? "active" : "off"}</span>
-                  </div>
-                  <div>
-                    <strong>Tables in use</strong>
-                    <div className="workspace-pills">
-                      {diagnostics.tablesUsed.length ? (
-                        diagnostics.tablesUsed.map((table) => (
-                          <span key={table} className="pill">
-                            {table}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="muted">Demo mode does not hit Supabase tables.</span>
-                      )}
+                  </summary>
+                  <div className="compact-plan-body stack-list">
+                    <div className="line-between">
+                      <span>Authenticated user</span>
+                      <span className="pill">{diagnostics.userId || "none"}</span>
                     </div>
-                  </div>
-                  {diagnostics.recentSaveErrors.length ? (
+                    <div className="line-between">
+                      <span>Last successful read</span>
+                      <span className="muted">{diagnostics.lastSuccessfulRead || "None yet"}</span>
+                    </div>
+                    <div className="line-between">
+                      <span>Last successful write</span>
+                      <span className="muted">{diagnostics.lastSuccessfulWrite || "None yet"}</span>
+                    </div>
+                    <div className="line-between">
+                      <span>Fallback local storage</span>
+                      <span className="pill">{diagnostics.fallbackLocalStorage ? "active" : "off"}</span>
+                    </div>
                     <div>
-                      <strong>Recent save errors</strong>
-                      <ul className="clean-list">
-                        {diagnostics.recentSaveErrors.map((item, index) => (
-                          <li key={stableListKey("settings-save-error", item, index)}>{item}</li>
-                        ))}
-                      </ul>
+                      <strong>Tables in use</strong>
+                      <div className="workspace-pills">
+                        {diagnostics.tablesUsed.length ? (
+                          diagnostics.tablesUsed.map((table) => (
+                            <span key={table} className="pill">
+                              {table}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="muted">Demo mode does not hit Supabase tables.</span>
+                        )}
+                      </div>
                     </div>
-                  ) : null}
-                </div>
+                    {diagnostics.recentSaveErrors.length ? (
+                      <div>
+                        <strong>Recent save errors</strong>
+                        <ul className="clean-list">
+                          {diagnostics.recentSaveErrors.map((item, index) => (
+                            <li key={stableListKey("settings-save-error", item, index)}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                </details>
               </Panel>
             ) : null}
+
+            <Panel title="Danger zone" eyebrow="Account controls">
+              <SettingsDangerZone />
+            </Panel>
           </div>
         </div>
       </div>

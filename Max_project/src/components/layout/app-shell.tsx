@@ -36,7 +36,7 @@ const appearanceLabels: Record<"sunrise" | "ember" | "midnight", string> = {
 
 function buildWorkspaceActions(pathname: string, hasPlan: boolean): WorkspaceAction[] {
   if (!hasPlan) {
-    return [{ href: "/onboarding/welcome", label: "Start assessment", prominent: true }];
+    return [];
   }
 
   if (pathname === "/app" || pathname === "/app/plan") {
@@ -137,17 +137,25 @@ export function AppShell({
   const runCount = workspaceState.history.length;
   const checkInCount = workspaceState.checkIns.length;
   const hasPlan = Boolean(workspaceState.buildPackage);
+  const isEmptyOverview = pathname === "/app" && !hasPlan;
   const workspaceActions = buildWorkspaceActions(pathname, hasPlan);
   const sidebarAction = hasPlan
     ? pathname === "/app"
       ? { href: "/app/reflection?mode=weekly", label: "Log weekly progress", prominent: true }
       : { href: "/app", label: "Return to overview" }
     : { href: "/onboarding/welcome", label: "Start assessment", prominent: true };
-  const showSettingsAction = pathname !== "/app/settings";
+  const showSettingsAction = pathname !== "/app/settings" && !isEmptyOverview;
+  const showTopbarActions = workspaceActions.length > 0 || showSettingsAction;
   const storageLabel = getStorageLabel(diagnostics.connectionStatus);
   const storageTone = getStorageTone(diagnostics.connectionStatus);
   const planningMode = workspaceState.preferences?.planningMode === "ai" ? "ai" : "stable";
   const planningModeDetails = getPlanningModeDetails(planningMode);
+  const topbarTitle = isEmptyOverview
+    ? "Initialize workspace"
+    : appNavigation.find((item) => item.href === pathname)?.label || "Dashboard";
+  const topbarDescription = isEmptyOverview
+    ? "Complete the assessment to generate your first plan, progress board, reflection loop, and agent workspace."
+    : pageDescriptions[pathname] || pageDescriptions["/app"];
 
   const signedInLabel = authSummary.user
     ? authSummary.user.name?.trim()
@@ -276,11 +284,11 @@ export function AppShell({
       </aside>
 
       <div className="app-main">
-        <header className="app-topbar">
+        <header className={`app-topbar ${isEmptyOverview ? "empty-overview-topbar" : ""}`}>
           <div className="topbar-copy">
             <p className="eyebrow">Application workspace</p>
-            <h1>{appNavigation.find((item) => item.href === pathname)?.label || "Dashboard"}</h1>
-            <p className="muted">{pageDescriptions[pathname] || pageDescriptions["/app"]}</p>
+            <h1>{topbarTitle}</h1>
+            <p className="muted">{topbarDescription}</p>
             <div className="topbar-meta">
               <span className={`workspace-sync-status ${planningMode === "ai" ? "warn" : "good"}`}>
                 {planningModePill(planningMode)}
@@ -288,22 +296,24 @@ export function AppShell({
               <span className={`workspace-sync-status ${storageTone}`}>{storageLabel}</span>
             </div>
           </div>
-          <div className="topbar-actions">
-            {workspaceActions.map((action) => (
-              <Link
-                key={action.href}
-                className={`button-link ${action.prominent ? "primary" : ""}`}
-                href={action.href}
-              >
-                {action.label}
-              </Link>
-            ))}
-            {showSettingsAction ? (
-              <Link className="button-link" href="/app/settings">
-                Settings
-              </Link>
-            ) : null}
-          </div>
+          {showTopbarActions ? (
+            <div className="topbar-actions">
+              {workspaceActions.map((action) => (
+                <Link
+                  key={action.href}
+                  className={`button-link ${action.prominent ? "primary" : ""}`}
+                  href={action.href}
+                >
+                  {action.label}
+                </Link>
+              ))}
+              {showSettingsAction ? (
+                <Link className="button-link" href="/app/settings">
+                  Settings
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
         </header>
         {error ? (
           <div className="workspace-status-banner" role="status">
