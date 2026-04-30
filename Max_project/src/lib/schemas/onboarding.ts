@@ -13,7 +13,6 @@ export const onboardingAnswerSchema = z.object({
   consentProfileData: z.boolean().refine((value) => value === true, {
     message: "Consent is required to build the first plan."
   }),
-  ageBracket: requiredSelection("Choose your age bracket."),
   occupationCategory: requiredSelection("Choose your current role context."),
   occupation: requiredText("Enter your specific role."),
   workSchedule: requiredSelection("Choose your work pattern."),
@@ -59,7 +58,6 @@ export const defaultOnboardingAnswers: OnboardingDraft = {
   communicationStyle: "",
   supportIntensity: "",
   consentProfileData: false,
-  ageBracket: "",
   occupationCategory: "",
   occupation: "",
   workSchedule: "",
@@ -105,7 +103,6 @@ export const onboardingStepSchemas = {
     consentProfileData: true
   }),
   baseline: onboardingAnswerSchema.pick({
-    ageBracket: true,
     occupationCategory: true,
     occupation: true,
     workSchedule: true,
@@ -148,15 +145,6 @@ export const onboardingStepSchemas = {
   })
 } satisfies Record<Exclude<StepDefinition["id"], "welcome" | "review" | "processing" | "complete">, z.ZodType<OnboardingDraft>>;
 
-export function ageBracketToAge(bracket: string) {
-  return {
-    "18-24": 22,
-    "25-34": 29,
-    "35-44": 39,
-    "45+": 49
-  }[bracket] || 29;
-}
-
 export function toWorkflowInput(answers: OnboardingAnswers) {
   const blockers = answers.blockers || [];
   const primaryGoal =
@@ -172,7 +160,7 @@ export function toWorkflowInput(answers: OnboardingAnswers) {
     focusDomains: answers.focusDomains,
     transformationMode: answers.transformationMode,
     timeHorizon: answers.timeHorizon,
-    age: String(ageBracketToAge(answers.ageBracket)),
+    age: "29",
     occupationCategory: answers.occupationCategory,
     occupation: answers.occupation,
     workSchedule: answers.workSchedule,

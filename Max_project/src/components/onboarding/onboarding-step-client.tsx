@@ -116,7 +116,6 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
     communicationStyle: "Choose how the system should speak to you.",
     supportIntensity: "Choose how intense the recommendations should feel.",
     consentProfileData: "Confirm consent to continue.",
-    ageBracket: "Choose your age bracket.",
     occupationCategory: "Choose your current role context.",
     occupation: "Enter your specific role.",
     workSchedule: "Choose your work pattern.",

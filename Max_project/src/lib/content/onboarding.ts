@@ -136,18 +136,6 @@ export const onboardingSteps: StepDefinition[] = [
     prevHref: "/onboarding/focus",
     fields: [
       {
-        id: "ageBracket",
-        label: "Age bracket",
-        type: "single-card",
-        required: true,
-        options: [
-          { value: "18-24", label: "18-24", description: "Early build phase." },
-          { value: "25-34", label: "25-34", description: "Prime acceleration phase." },
-          { value: "35-44", label: "35-44", description: "Refine and compound." },
-          { value: "45+", label: "45+", description: "Sustainable optimization." }
-        ]
-      },
-      {
         id: "occupationCategory",
         label: "Current role context",
         type: "single-card",

@@ -11,7 +11,6 @@ const REQUIRED_FIELDS = [
   "communicationStyle",
   "supportIntensity",
   "consentProfileData",
-  "ageBracket",
   "occupationCategory",
   "occupation",
   "workSchedule",
