@@ -66,11 +66,20 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
   );
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const saveDraftMutation = useSaveOnboardingDraft();
+  const [forceFresh, setForceFresh] = useState(false);
   const form = useForm<Record<string, any>>({
     resolver: zodResolver(onboardingStepSchemas[stepId] as any),
     mode: "onChange",
     defaultValues: defaultOnboardingAnswers
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    setForceFresh(new URLSearchParams(window.location.search).get("fresh") === "1");
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +88,8 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
       const state = await loadResolvedOnboardingState({
         authMode: authSummary.mode,
         userId: authSummary.userId,
-        workspaceAnswers: workspace.state.onboardingAnswers
+        workspaceAnswers: workspace.state.onboardingAnswers,
+        forceFresh
       });
 
       if (!cancelled) {
@@ -95,9 +105,62 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
     return () => {
       cancelled = true;
     };
-  }, [authSummary.mode, authSummary.userId, form, stepId, workspace.state.onboardingAnswers]);
+  }, [authSummary.mode, authSummary.userId, forceFresh, form, stepId, workspace.state.onboardingAnswers]);
 
   const values = form.watch();
+
+  const validationFallbacks: Record<string, string> = {
+    focusDomains: "Select at least two priorities.",
+    transformationMode: "Choose the kind of help you need.",
+    timeHorizon: "Choose your planning window.",
+    communicationStyle: "Choose how the system should speak to you.",
+    supportIntensity: "Choose how intense the recommendations should feel.",
+    consentProfileData: "Confirm consent to continue.",
+    ageBracket: "Choose your age bracket.",
+    occupationCategory: "Choose your current role context.",
+    occupation: "Enter your specific role.",
+    workSchedule: "Choose your work pattern.",
+    weeklyHoursAvailable: "Choose how much time you have each week.",
+    weeklyScheduleReality: "Describe what a normal week actually looks like.",
+    financialStress: "Choose your current financial pressure.",
+    energyBaseline: "Choose your current energy baseline.",
+    sleepHours: "Choose your current sleep baseline.",
+    dietQuality: "Choose your current diet quality.",
+    eatingPattern: "Choose your current eating pattern.",
+    trainingFrequency: "Choose your current training frequency.",
+    gymAccess: "Choose your current training setup.",
+    groomingHabits: "Choose your current grooming baseline.",
+    build: "Choose the option that best matches your current build.",
+    nightlyPhoneHours: "Choose how much phone time usually leaks into your nights.",
+    distractionSources: "Select at least one distraction source.",
+    avoidancePatterns: "Select at least one avoidance pattern.",
+    stressResponse: "Select at least one stress response.",
+    socialEnvironment: "Choose the social environment that fits best.",
+    careerGoal: "Enter the career goal the system should optimize around.",
+    longTermDirection: "Enter the longer-term direction you care about.",
+    blockers: "Select at least one blocker.",
+    moneyLeaks: "Select at least one money leak.",
+    whyNow: "Explain why this needs to change now.",
+    selfNarrative: "Describe the story you keep telling yourself."
+  };
+
+  function getValidationMessage(field: StepDefinition["fields"][number]) {
+    const directMessage = readErrorMessage(form.formState.errors[field.id]);
+    const optionMessage = field.options
+      ?.map((option) => readErrorMessage(form.formState.errors[option.value]))
+      .find(Boolean);
+    const rawMessage = directMessage || optionMessage;
+
+    if (!rawMessage) {
+      return null;
+    }
+
+    if (/Too small|Invalid literal|Invalid input|Expected/i.test(rawMessage)) {
+      return validationFallbacks[field.id] || field.options?.map((option) => validationFallbacks[option.value]).find(Boolean) || "Complete this field to continue.";
+    }
+
+    return rawMessage;
+  }
 
   async function onSubmit(stepValues: Record<string, any>) {
     setSubmissionError(null);
@@ -199,8 +262,10 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
                           }
                         }}
                       >
-                        <strong>{option.label}</strong>
-                        {option.description ? <small>{option.description}</small> : null}
+                        <span className="choice-card-stack">
+                          <span className="choice-card-title">{option.label}</span>
+                          {option.description ? <span className="choice-card-description">{option.description}</span> : null}
+                        </span>
                       </button>
                     );
                   })}
@@ -273,23 +338,15 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
                           />
                         )}
                       />
-                      <span>{option.label}</span>
+                      <span className="checkbox-pill-label">{option.label}</span>
                     </label>
                   ))}
                 </div>
               )}
 
               {(() => {
-                const directMessage = readErrorMessage(form.formState.errors[field.id]);
-                const optionMessage = field.options
-                  ?.map((option) => readErrorMessage(form.formState.errors[option.value]))
-                  .find(Boolean);
-
-                if (!directMessage && !optionMessage) {
-                  return null;
-                }
-
-                return <p className="warn">{directMessage || optionMessage}</p>;
+                const message = getValidationMessage(field);
+                return message ? <p className="warn">{message}</p> : null;
               })()}
             </div>
           ))}

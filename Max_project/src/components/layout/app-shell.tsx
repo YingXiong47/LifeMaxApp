@@ -138,12 +138,13 @@ export function AppShell({
   const checkInCount = workspaceState.checkIns.length;
   const hasPlan = Boolean(workspaceState.buildPackage);
   const isEmptyOverview = pathname === "/app" && !hasPlan;
+  const isPlanlessWorkspace = pathname.startsWith("/app") && !hasPlan;
   const workspaceActions = buildWorkspaceActions(pathname, hasPlan);
   const sidebarAction = hasPlan
     ? pathname === "/app"
       ? { href: "/app/reflection?mode=weekly", label: "Log weekly progress", prominent: true }
       : { href: "/app", label: "Return to overview" }
-    : { href: "/onboarding/welcome", label: "Start assessment", prominent: true };
+    : { href: "/onboarding/focus?fresh=1", label: "Start assessment", prominent: true };
   const showSettingsAction = pathname !== "/app/settings" && !isEmptyOverview;
   const showTopbarActions = workspaceActions.length > 0 || showSettingsAction;
   const storageLabel = getStorageLabel(diagnostics.connectionStatus);
@@ -156,6 +157,8 @@ export function AppShell({
   const topbarDescription = isEmptyOverview
     ? "Complete the assessment to generate your first plan, progress board, reflection loop, and agent workspace."
     : pageDescriptions[pathname] || pageDescriptions["/app"];
+  const topbarStorageLabel = isPlanlessWorkspace ? "No active plan" : storageLabel;
+  const topbarStorageTone = isPlanlessWorkspace ? "" : storageTone;
 
   const signedInLabel = authSummary.user
     ? authSummary.user.name?.trim()
@@ -284,7 +287,7 @@ export function AppShell({
       </aside>
 
       <div className="app-main">
-        <header className={`app-topbar ${isEmptyOverview ? "empty-overview-topbar" : ""}`}>
+        <header className={`app-topbar ${isPlanlessWorkspace ? "planless-topbar" : ""} ${isEmptyOverview ? "empty-overview-topbar" : ""}`}>
           <div className="topbar-copy">
             <p className="eyebrow">Application workspace</p>
             <h1>{topbarTitle}</h1>
@@ -293,7 +296,7 @@ export function AppShell({
               <span className={`workspace-sync-status ${planningMode === "ai" ? "warn" : "good"}`}>
                 {planningModePill(planningMode)}
               </span>
-              <span className={`workspace-sync-status ${storageTone}`}>{storageLabel}</span>
+              <span className={`workspace-sync-status ${topbarStorageTone}`}>{topbarStorageLabel}</span>
             </div>
           </div>
           {showTopbarActions ? (

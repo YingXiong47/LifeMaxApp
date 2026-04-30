@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -50,6 +49,29 @@ type ReflectionResult = {
     note: string;
   }>;
 };
+
+function readReflectionRouteState(): { requestedMode: CheckInMode | null; requestedTab: ResultsTab } {
+  if (typeof window === "undefined") {
+    return {
+      requestedMode: null,
+      requestedTab: "summary"
+    };
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const requestedMode =
+    searchParams.get("mode") === "daily"
+      ? "daily"
+      : searchParams.get("mode") === "weekly"
+        ? "weekly"
+        : null;
+  const requestedTab: ResultsTab = searchParams.get("tab") === "history" ? "history" : "summary";
+
+  return {
+    requestedMode,
+    requestedTab
+  };
+}
 
 const reflectionCategories: ReflectionCategory[] = [
   {
@@ -680,13 +702,14 @@ export function ReflectionWorkspace({
   state: DemoState;
   onUpdate: (nextState: DemoState) => void;
 }) {
-  const searchParams = useSearchParams();
-  const requestedMode = searchParams.get("mode") === "daily" ? "daily" : searchParams.get("mode") === "weekly" ? "weekly" : null;
-  const requestedTab: ResultsTab = searchParams.get("tab") === "history" ? "history" : "summary";
+  const [routeState, setRouteState] = useState<{ requestedMode: CheckInMode | null; requestedTab: ResultsTab }>({
+    requestedMode: null,
+    requestedTab: "summary"
+  });
   const latest = state.checkIns[0];
   const latestCategories = latest?.reflections?.map((item) => item.category).filter(Boolean);
 
-  const [kind, setKind] = useState<CheckInMode>(requestedMode || "daily");
+  const [kind, setKind] = useState<CheckInMode>("daily");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     latestCategories?.length ? latestCategories : reflectionDefaults
   );
@@ -694,13 +717,15 @@ export function ReflectionWorkspace({
   const [energy, setEnergy] = useState("3");
   const [adherence, setAdherence] = useState("3");
   const [clarity, setClarity] = useState("3");
-  const [step, setStep] = useState<ReflectionStep>(
-    requestedTab === "history" && state.checkIns.length ? "results" : requestedMode ? "categories" : "type"
-  );
+  const [step, setStep] = useState<ReflectionStep>("type");
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
-  const [resultsTab, setResultsTab] = useState<ResultsTab>(requestedTab);
+  const [resultsTab, setResultsTab] = useState<ResultsTab>("summary");
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(state.checkIns[0]?.id || null);
   const [latestResult, setLatestResult] = useState<ReflectionResult | null>(null);
+
+  useEffect(() => {
+    setRouteState(readReflectionRouteState());
+  }, []);
 
   useEffect(() => {
     setReflectionDrafts((current) =>
@@ -715,20 +740,20 @@ export function ReflectionWorkspace({
   }, [selectedCategories]);
 
   useEffect(() => {
-    if (requestedMode) {
-      setKind(requestedMode);
+    if (routeState.requestedMode) {
+      setKind(routeState.requestedMode);
       if (step === "type") {
         setStep("categories");
       }
     }
-  }, [requestedMode, step]);
+  }, [routeState.requestedMode, step]);
 
   useEffect(() => {
-    if (requestedTab === "history" && state.checkIns.length) {
+    if (routeState.requestedTab === "history" && state.checkIns.length) {
       setResultsTab("history");
       setStep("results");
     }
-  }, [requestedTab, state.checkIns.length]);
+  }, [routeState.requestedTab, state.checkIns.length]);
 
   const averages = useMemo(
     () => ({

@@ -13,6 +13,7 @@ type LoadResolvedOnboardingStateInput = {
   authMode: AuthMode;
   userId: string | null;
   workspaceAnswers?: Record<string, unknown> | null;
+  forceFresh?: boolean;
 };
 
 type RemoteDraftPayload = {
@@ -53,9 +54,23 @@ function mergeOnboardingAnswers(
 export async function loadResolvedOnboardingState({
   authMode,
   userId,
-  workspaceAnswers
+  workspaceAnswers,
+  forceFresh = false
 }: LoadResolvedOnboardingStateInput): Promise<DemoState> {
   const localState = loadDemoState();
+  const localAnswers = authMode === "demo" ? localState.onboardingAnswers || null : null;
+
+  if (forceFresh) {
+    const freshState = {
+      ...getDefaultDemoState(),
+      ...localState,
+      onboardingAnswers: { ...defaultOnboardingAnswers }
+    };
+
+    saveDemoState(freshState);
+    return freshState;
+  }
+
   const remoteDraft =
     authMode !== "demo" && userId ? await loadRemoteDraft(userId) : null;
   const mergedState = {
@@ -64,11 +79,10 @@ export async function loadResolvedOnboardingState({
     onboardingAnswers: mergeOnboardingAnswers(
       workspaceAnswers || null,
       remoteDraft,
-      localState.onboardingAnswers || null
+      localAnswers
     )
   };
 
   saveDemoState(mergedState);
   return mergedState;
 }
-

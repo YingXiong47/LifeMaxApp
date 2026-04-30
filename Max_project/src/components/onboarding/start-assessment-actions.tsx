@@ -21,12 +21,12 @@ export function StartAssessmentActions() {
       return;
     }
 
-    router.push("/onboarding/focus");
+    router.push("/onboarding/focus?fresh=1");
   }
 
   function continueToAssessment() {
     setConfirmOpen(false);
-    router.push("/onboarding/focus");
+    router.push("/onboarding/focus?fresh=1");
   }
 
   return (

@@ -129,10 +129,11 @@ export function ReviewStepClient() {
                     saveDemoState(nextState);
                   }}
                 >
-                  <strong>
-                    {option.title} <small>{option.eyebrow}</small>
-                  </strong>
-                  <small>{option.subtitle}</small>
+                  <span className="choice-card-stack">
+                    <span className="choice-card-title">{option.title}</span>
+                    <span className="choice-card-kicker">{option.eyebrow}</span>
+                    <span className="choice-card-description">{option.subtitle}</span>
+                  </span>
                 </button>
               ))}
             </div>
