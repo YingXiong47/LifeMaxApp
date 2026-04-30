@@ -56,6 +56,22 @@ const stepVisualCopy: Record<StepDefinition["id"], { caption: string; note: stri
   }
 };
 
+function compactDraftAnswers(values: OnboardingDraft) {
+  return Object.fromEntries(
+    Object.entries(values).filter(([, value]) => {
+      if (value === "" || value === null || value === undefined) {
+        return false;
+      }
+
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+
+      return true;
+    })
+  ) as OnboardingDraft;
+}
+
 export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] }) {
   const router = useRouter();
   const authSummary = useAppAuthSummary();
@@ -166,11 +182,10 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
 
     try {
       const state = loadDemoState();
-      const mergedAnswers: OnboardingDraft = {
-        ...defaultOnboardingAnswers,
+      const mergedAnswers = compactDraftAnswers({
         ...state.onboardingAnswers,
         ...stepValues
-      };
+      });
 
       saveDemoState({
         ...state,
