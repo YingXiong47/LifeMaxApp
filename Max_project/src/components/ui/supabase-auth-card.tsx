@@ -146,6 +146,11 @@ export function SupabaseAuthCard({ mode }: { mode: "sign-in" | "sign-up" }) {
           <button type="submit" className="button-link primary" disabled={submitting}>
             {submitting ? "Working..." : mode === "sign-in" ? "Sign in" : "Create account"}
           </button>
+          {mode === "sign-in" ? (
+            <Link className="button-link" href="/forgot-password">
+              Forgot password?
+            </Link>
+          ) : null}
           <Link className="button-link" href={mode === "sign-in" ? "/sign-up" : "/sign-in"}>
             {mode === "sign-in" ? "Create account" : "Already have an account?"}
           </Link>

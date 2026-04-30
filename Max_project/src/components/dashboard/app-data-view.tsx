@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { updatePlanProgress } from "../../../agents/tracking/progressTrackerAgent.js";
 import { useAppAuthSummary } from "@/components/providers/app-providers";
@@ -2538,6 +2539,13 @@ export function AppDataView({ view }: { view: View }) {
                     ? "Supabase email/password auth is active. Workspace ownership, onboarding, and plan runs are keyed to the authenticated user id."
                     : "Production mode should use Supabase Auth or Clerk with protected server routes and durable user sessions."}
                 </p>
+                {authSummary.mode === "supabase" ? (
+                  <div className="controls">
+                    <Link className="button-link" href="/forgot-password">
+                      Reset password by email
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             </Panel>
 
