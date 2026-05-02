@@ -72,6 +72,25 @@ function compactDraftAnswers(values: OnboardingDraft) {
   ) as OnboardingDraft;
 }
 
+function pickCurrentStepAnswers(
+  definition: StepDefinition,
+  values: Record<string, any>
+) {
+  const allowedKeys = new Set<string>();
+
+  for (const field of definition.fields) {
+    allowedKeys.add(field.id);
+
+    if (field.type === "checkbox-list") {
+      field.options?.forEach((option) => allowedKeys.add(option.value));
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(values).filter(([key]) => allowedKeys.has(key))
+  ) as OnboardingDraft;
+}
+
 export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] }) {
   const router = useRouter();
   const authSummary = useAppAuthSummary();
@@ -182,9 +201,10 @@ export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] 
 
     try {
       const state = loadDemoState();
+      const currentStepAnswers = pickCurrentStepAnswers(step, stepValues);
       const mergedAnswers = compactDraftAnswers({
         ...state.onboardingAnswers,
-        ...stepValues
+        ...currentStepAnswers
       });
 
       saveDemoState({
