@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMax OS Project Architecture Walkthrough</title>
+    <style>
+      :root {
+        --bg: #07111b;
+        --panel: #0d1a28;
+        --panel-2: #102235;
+        --panel-3: #13283e;
+        --ink: #edf5ff;
+        --muted: #aebfd6;
+        --line: #23415f;
+        --cyan: #5ed6ff;
+        --mint: #9cf4bf;
+        --gold: #ffc97b;
+        --warn: #ffb072;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      }
+
+      @page {
+        size: Letter;
+        margin: 0.6in;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      body {
+        padding: 28px;
+      }
+
+      main {
+        max-width: 1040px;
+        margin: 0 auto;
+      }
+
+      .cover,
+      .section,
+      .page {
+        background: linear-gradient(180deg, rgba(16, 34, 53, 0.95), rgba(10, 22, 34, 0.96));
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 34px 36px;
+        box-shadow: var(--shadow);
+      }
+
+      .page {
+        page-break-before: always;
+      }
+
+      .stack {
+        display: grid;
+        gap: 22px;
+      }
+
+      .eyebrow {
+        color: var(--cyan);
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin: 0 0 16px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 54px;
+        letter-spacing: -0.04em;
+      }
+
+      h2 {
+        font-size: 34px;
+        letter-spacing: -0.03em;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 24px;
+        margin-bottom: 12px;
+      }
+
+      h4 {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      p,
+      li {
+        font-size: 18px;
+        color: var(--muted);
+      }
+
+      strong {
+        color: var(--ink);
+      }
+
+      .lede {
+        font-size: 22px;
+        color: #dfeeff;
+        max-width: 860px;
+      }
+
+      .small {
+        font-size: 14px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #d7f4ff;
+        background: rgba(14, 31, 47, 0.85);
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 22px;
+        margin-top: 10px;
+      }
+
+      .toc div {
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(38, 73, 108, 0.9);
+        background: rgba(10, 21, 33, 0.72);
+        color: #d8e7fb;
+        font-size: 16px;
+      }
+
+      .grid-2,
+      .grid-3 {
+        display: grid;
+        gap: 18px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid rgba(36, 67, 98, 0.95);
+        border-radius: 22px;
+        background: rgba(10, 23, 36, 0.88);
+        padding: 20px 22px;
+      }
+
+      .card p:last-child,
+      .card ul:last-child {
+        margin-bottom: 0;
+      }
+
+      ul,
+      ol {
+        margin: 10px 0 0 22px;
+        padding: 0;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+
+      code {
+        color: #dff9ff;
+        font-size: 0.95em;
+        background: rgba(18, 41, 60, 0.9);
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+
+      pre {
+        margin: 10px 0 0;
+        padding: 16px 18px;
+        white-space: pre-wrap;
+        border-radius: 18px;
+        border: 1px solid rgba(35, 65, 95, 0.95);
+        background: #08131f;
+        color: #e8f4ff;
+        font-size: 15px;
+        line-height: 1.55;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid rgba(32, 60, 88, 0.9);
+      }
+
+      th {
+        color: var(--cyan);
+        background: rgba(12, 26, 41, 0.95);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      td {
+        color: #d8e6f7;
+        font-size: 16px;
+        background: rgba(9, 19, 31, 0.9);
+      }
+
+      .callout {
+        border-left: 4px solid var(--cyan);
+        padding: 16px 18px;
+        border-radius: 16px;
+        background: rgba(8, 20, 32, 0.88);
+      }
+
+      .flow {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 24px;
+        border: 1px solid rgba(35, 65, 95, 0.95);
+        background: #08131f;
+        padding: 18px;
+      }
+
+      .label {
+        font-size: 14px;
+        font-weight: 800;
+        fill: #d9eeff;
+      }
+
+      .label-small {
+        font-size: 12px;
+        font-weight: 700;
+        fill: #d9eeff;
+      }
+
+      .label-muted {
+        font-size: 12px;
+        font-weight: 600;
+        fill: #96b0ca;
+      }
+
+      .caption {
+        margin-top: 10px;
+        font-size: 15px;
+        color: #b9cde4;
+      }
+
+      .quote {
+        font-size: 20px;
+        color: #e2f6ff;
+      }
+
+      .two-col-text {
+        columns: 2;
+        column-gap: 34px;
+      }
+
+      .two-col-text p {
+        margin-top: 0;
+      }
+
+      .break-avoid {
+        break-inside: avoid;
+      }
+
+      .foot {
+        margin-top: 10px;
+        color: #97b2cb;
+        font-size: 13px;
+      }
+
+      .accent {
+        color: var(--mint);
+      }
+
+      .warning {
+        color: var(--warn);
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          background: #fff;
+        }
+
+        main {
+          max-width: none;
+        }
+
+        .cover,
+        .section,
+        .page {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stack">
+      <section class="cover stack">
+        <div>
+          <p class="eyebrow">LifeMax OS • Project Architecture Report</p>
+          <h1>Complete Technical Walkthrough of the LifeMax OS Codebase</h1>
+        </div>
+        <p class="lede">
+          This document explains the entire LifeMax OS project in plain language for a non-programmer.
+          It covers the app’s structure, the role of TypeScript, JavaScript, React, Next.js, HTML-like
+          JSX, CSS, Supabase, validation, AI planning, routing, persistence, and how all major pieces connect.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What this project is</h3>
+            <p>
+              LifeMax OS is a full-stack planning product. A user signs in, completes a structured
+              assessment, generates a personalized plan, then uses a protected workspace to review
+              profile intelligence, weekly plans, progress, reflections, history, and agent output.
+            </p>
+          </div>
+          <div class="card">
+            <h3>What this report explains</h3>
+            <p>
+              This report does not just list files. It explains the system from the user’s point of
+              view, the developer’s point of view, and the data’s point of view. The goal is for a
+              non-technical reader to understand what each major code area does and why it exists.
+            </p>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="pill">Framework: Next.js 16</span>
+          <span class="pill">UI: React 19 + TypeScript</span>
+          <span class="pill">Storage: Supabase</span>
+          <span class="pill">Validation: Zod</span>
+          <span class="pill">Forms: React Hook Form</span>
+          <span class="pill">AI Runtime: OpenAI Agents + legacy planner</span>
+        </div>
+        <div class="card">
+          <h3>Table of Contents</h3>
+          <div class="toc">
+            <div>1. Executive summary</div>
+            <div>2. Language primer: TS, JS, TSX, HTML, CSS</div>
+            <div>3. High-level architecture diagram</div>
+            <div>4. Project folder structure</div>
+            <div>5. Routing and page system</div>
+            <div>6. Root layout and providers</div>
+            <div>7. Authentication and session handling</div>
+            <div>8. Workspace state management</div>
+            <div>9. Onboarding assessment architecture</div>
+            <div>10. Validation and schemas</div>
+            <div>11. Plan generation pipeline</div>
+            <div>12. AI runtime and agent orchestration</div>
+            <div>13. Persistence and Supabase tables</div>
+            <div>14. Dashboard rendering and page sections</div>
+            <div>15. Reflection and progress systems</div>
+            <div>16. Styling and design system</div>
+            <div>17. End-to-end request and data flow</div>
+            <div>18. Key component prototypes</div>
+            <div>19. Deployment and environment model</div>
+            <div>20. Glossary and final summary</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 1</p>
+          <h2>Executive Summary</h2>
+        </div>
+        <div class="callout">
+          <p class="quote">
+            LifeMax OS is a personalized planning platform built as a serious web application rather
+            than a one-off chatbot. It combines guided onboarding, validated structured data,
+            authenticated user storage, optional AI-assisted planning, and an ongoing user workspace.
+          </p>
+        </div>
+        <div class="two-col-text">
+          <p>
+            The project is built on <strong>Next.js</strong>, which is a framework that handles pages,
+            routing, server logic, and deployment conventions. The visual side is built with
+            <strong>React</strong>, which allows the UI to be broken into reusable components. The code
+            is written in <strong>TypeScript</strong>, which is JavaScript with type safety. This is
+            especially helpful here because the app moves complex data through many stages: onboarding
+            answers, generated plans, reflections, storage snapshots, diagnostics, and AI outputs.
+          </p>
+          <p>
+            The application has both a <strong>client side</strong> and a <strong>server side</strong>.
+            The client side is the part that runs in the browser and handles interactions like button
+            clicks, form entry, route changes, and showing dashboard cards. The server side handles
+            secure work such as checking authentication, saving to the database, loading saved workspace
+            data, and generating plans.
+          </p>
+          <p>
+            The project uses <strong>Supabase</strong> as its primary backend service. Supabase handles
+            email/password authentication and stores persistent records such as profiles, assessments,
+            weekly plans, agent runs, reflections, and user settings. The app is careful not to pretend
+            data was saved when it was not. It also tracks diagnostics so the UI can tell the user
+            whether the workspace is truly saved or only available in a local fallback cache.
+          </p>
+          <p>
+            One of the strongest architectural decisions in this project is the separation between
+            <strong>content definitions</strong>, <strong>validation rules</strong>, <strong>UI rendering</strong>,
+            and <strong>workflow orchestration</strong>. That means the questionnaire content is not mixed
+            into random buttons, and the planning logic is not mixed directly into screen markup. This
+            makes the codebase easier to maintain, extend, and explain.
+          </p>
+          <p>
+            There are two main planning modes. <strong>Stable mode</strong> uses a more deterministic
+            planning path that is safer for production use. <strong>AI mode</strong> runs a deeper
+            OpenAI-based multi-agent workflow. The architecture supports both because it routes plan
+            generation through a central workflow resolver instead of hard-wiring one approach directly
+            into the page.
+          </p>
+          <p>
+            The app’s protected workspace lives under <code>/app</code>. That workspace is not one giant
+            page. It is a shell with multiple views: overview, profile, plan, reflection, progress,
+            agent runs, history, and settings. A state provider loads the workspace snapshot, and a
+            central rendering component turns that saved state into the user-facing product.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 2</p>
+          <h2>Language Primer: TypeScript, JavaScript, TSX, HTML, and CSS</h2>
+        </div>
+        <div class="grid-2">
+          <div class="card break-avoid">
+            <h3>JavaScript</h3>
+            <p>
+              JavaScript is the language that web browsers understand. It controls behavior: what happens
+              when a user clicks something, submits a form, or loads a page. In this project, JavaScript
+              is the runtime language, even though the source files are mostly written in TypeScript.
+            </p>
+          </div>
+          <div class="card break-avoid">
+            <h3>TypeScript</h3>
+            <p>
+              TypeScript adds safety rules on top of JavaScript. It lets the code define what kind of
+              data should exist. For example, a workspace history item must have an id, created date,
+              title, status, and confidence score. This prevents many bugs before the app is even run.
+            </p>
+          </div>
+          <div class="card break-avoid">
+            <h3>TSX</h3>
+            <p>
+              A <code>.tsx</code> file is TypeScript that also contains UI markup. That markup looks
+              similar to HTML, but it is actually React syntax. This allows the UI and the behavior to
+              live in the same component file.
+            </p>
+          </div>
+          <div class="card break-avoid">
+            <h3>HTML</h3>
+            <p>
+              HTML is the structure of a web page: headings, paragraphs, buttons, forms, and sections.
+              In this project, most HTML is not handwritten in separate <code>.html</code> files. It is
+              generated by React components written in TSX.
+            </p>
+          </div>
+          <div class="card break-avoid">
+            <h3>CSS</h3>
+            <p>
+              CSS controls how the page looks: spacing, colors, typography, layout, borders, hover
+              states, responsive behavior, and print styling. The main visual system for LifeMax OS is
+              concentrated in <code>src/app/globals.css</code>.
+            </p>
+          </div>
+          <div class="card break-avoid">
+            <h3>SQL</h3>
+            <p>
+              SQL is the language databases use for tables and queries. You do not see much raw SQL in
+              the React components, but the project includes Supabase migration files that define tables,
+              columns, indexes, and row-level security rules.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Why this mix of technologies makes sense</h3>
+          <p>
+            LifeMax OS is data-heavy. It deals with structured user inputs, authenticated sessions,
+            generated plan objects, dashboard rendering, and multiple storage pathways. TypeScript gives
+            safety. React gives reusable UI. Next.js gives routing and server logic. CSS gives visual
+            consistency. Supabase gives real account-backed storage. Together, those choices are strong
+            fits for a planning SaaS product.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 3</p>
+          <h2>High-Level Architecture Diagram</h2>
+        </div>
+        <div class="flow">
+          <svg viewBox="0 0 960 560" width="100%" role="img" aria-label="LifeMax OS layered architecture">
+            <defs>
+              <linearGradient id="boxA" x1="0" x2="1">
+                <stop offset="0%" stop-color="#0f2337" />
+                <stop offset="100%" stop-color="#17324b" />
+              </linearGradient>
+              <linearGradient id="boxB" x1="0" x2="1">
+                <stop offset="0%" stop-color="#102236" />
+                <stop offset="100%" stop-color="#203a56" />
+              </linearGradient>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#74dfff"></path>
+              </marker>
+            </defs>
+
+            <rect x="22" y="28" width="916" height="84" rx="20" fill="url(#boxA)" stroke="#2d577f" />
+            <text x="44" y="58" class="label">1. Browser / Frontend</text>
+            <text x="44" y="84" class="label-small">React components, forms, navigation, dashboard rendering, theme styling, local UI state</text>
+
+            <rect x="22" y="136" width="916" height="92" rx="20" fill="url(#boxB)" stroke="#2d577f" />
+            <text x="44" y="168" class="label">2. App Providers and Shell</text>
+            <text x="44" y="194" class="label-small">Root layout, auth summary, React Query, session bridge, workspace provider, sidebar and topbar shell</text>
+
+            <rect x="22" y="252" width="440" height="112" rx="20" fill="url(#boxA)" stroke="#2d577f" />
+            <text x="44" y="284" class="label">3A. API Routes</text>
+            <text x="44" y="310" class="label-small">/api/onboarding, /api/plan/generate, /api/workspace, /api/account</text>
+            <text x="44" y="334" class="label-muted">These routes validate requests and call workflow or repository logic.</text>
+
+            <rect x="496" y="252" width="442" height="112" rx="20" fill="url(#boxA)" stroke="#2d577f" />
+            <text x="518" y="284" class="label">3B. Workflow and Domain Logic</text>
+            <text x="518" y="310" class="label-small">Onboarding schemas, intake analysis, stable planner, builder flow, OpenAI agent runtime</text>
+            <text x="518" y="334" class="label-muted">This is where answers become structured plans and execution systems.</text>
+
+            <rect x="22" y="390" width="440" height="124" rx="20" fill="url(#boxB)" stroke="#2d577f" />
+            <text x="44" y="422" class="label">4A. Persistence Layer</text>
+            <text x="44" y="448" class="label-small">Repository helpers convert app state into database rows and back.</text>
+            <text x="44" y="472" class="label-small">Examples: profiles, assessments, weekly_plans, reflections, user_settings.</text>
+
+            <rect x="496" y="390" width="442" height="124" rx="20" fill="url(#boxB)" stroke="#2d577f" />
+            <text x="518" y="422" class="label">4B. External Services</text>
+            <text x="518" y="448" class="label-small">Supabase auth + database, OpenAI runtime, optional Inngest async events</text>
+            <text x="518" y="472" class="label-small">Environment configuration decides which services are active.</text>
+
+            <line x1="480" y1="228" x2="480" y2="252" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow)" />
+            <line x1="244" y1="228" x2="244" y2="252" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow)" />
+            <line x1="718" y1="228" x2="718" y2="252" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow)" />
+            <line x1="244" y1="364" x2="244" y2="390" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow)" />
+            <line x1="718" y1="364" x2="718" y2="390" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow)" />
+          </svg>
+          <p class="caption">
+            This layered view is the easiest way to understand the app: browser UI at the top, shared
+            providers and shell beneath that, APIs and workflow logic in the middle, and persistence
+            plus external services at the bottom.
+          </p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Architectural philosophy</h3>
+            <p>
+              The code does not let the page talk directly to the database. Instead, state moves through
+              providers, APIs, validation, workflow functions, and repository helpers. This creates more
+              files, but it also creates much clearer responsibility boundaries.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Why that is good</h3>
+            <p>
+              When a bug happens, the developer can ask: Is this a UI problem? A validation problem? A
+              workflow problem? A persistence problem? A service configuration problem? The architecture
+              makes those questions easier to answer.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 4</p>
+          <h2>Project Folder Structure</h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Role in the project</th>
+              <th>Why it matters</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>package.json</code></td>
+              <td>Project manifest</td>
+              <td>Defines dependencies, build scripts, test scripts, and the main technical stack.</td>
+            </tr>
+            <tr>
+              <td><code>src/app</code></td>
+              <td>Routes and layouts</td>
+              <td>This is the page tree. Every major part of the website starts here.</td>
+            </tr>
+            <tr>
+              <td><code>src/components</code></td>
+              <td>Reusable UI components</td>
+              <td>Buttons, onboarding components, dashboard components, layout elements, auth cards.</td>
+            </tr>
+            <tr>
+              <td><code>src/lib</code></td>
+              <td>Business logic and infrastructure helpers</td>
+              <td>Auth config, environment parsing, schemas, persistence, workflows, AI runtime.</td>
+            </tr>
+            <tr>
+              <td><code>src/hooks</code></td>
+              <td>Custom React hooks</td>
+              <td>Encapsulates repeated interaction patterns like saving onboarding drafts.</td>
+            </tr>
+            <tr>
+              <td><code>supabase/migrations</code></td>
+              <td>Database schema changes</td>
+              <td>Defines the tables and row-level security rules used by the live app.</td>
+            </tr>
+            <tr>
+              <td><code>tests/unit</code></td>
+              <td>Basic test suite</td>
+              <td>Provides minimal automated checks through a custom Node test runner.</td>
+            </tr>
+            <tr>
+              <td><code>docs</code></td>
+              <td>Project documentation</td>
+              <td>Contains architecture notes, deployment notes, and now this report.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="card">
+          <h3>How to read the codebase as a beginner</h3>
+          <p>
+            If you are not a programmer, the easiest path is:
+          </p>
+          <ol>
+            <li>Start with <code>src/app</code> to understand pages.</li>
+            <li>Then read <code>src/components/layout</code> and <code>src/components/providers</code> to understand the shared shell and state.</li>
+            <li>Then read <code>src/lib/schemas</code> and <code>src/lib/content</code> to understand data and forms.</li>
+            <li>Then read <code>src/lib/workflows</code>, <code>src/lib/agents</code>, and <code>src/lib/workspace</code> to understand how plans are generated and stored.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 5</p>
+          <h2>Routing and Page System</h2>
+        </div>
+        <p>
+          Next.js uses the folder tree under <code>src/app</code> as the route map. That means folders
+          become URLs. This is why the app feels organized into product areas instead of one giant
+          single-page application file.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>URL area</th>
+              <th>Main files</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/</code>, <code>/about</code></td>
+              <td><code>src/app/(marketing)</code></td>
+              <td>Public landing and informational pages.</td>
+            </tr>
+            <tr>
+              <td><code>/sign-in</code>, <code>/sign-up</code>, <code>/forgot-password</code>, <code>/reset-password</code></td>
+              <td><code>src/app/(auth)</code></td>
+              <td>Authentication pages and password recovery.</td>
+            </tr>
+            <tr>
+              <td><code>/example-run</code></td>
+              <td><code>src/app/example-run</code></td>
+              <td>Public, non-persistent example experience.</td>
+            </tr>
+            <tr>
+              <td><code>/onboarding/*</code></td>
+              <td><code>src/app/onboarding</code></td>
+              <td>Multi-step assessment flow that gathers planning inputs.</td>
+            </tr>
+            <tr>
+              <td><code>/app/*</code></td>
+              <td><code>src/app/app</code></td>
+              <td>Protected workspace: overview, profile, plan, progress, reflection, settings, and more.</td>
+            </tr>
+            <tr>
+              <td><code>/api/*</code></td>
+              <td><code>src/app/api</code></td>
+              <td>Server-side endpoints for persistence, plan generation, and account actions.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flow">
+          <svg viewBox="0 0 940 380" width="100%" role="img" aria-label="User route flow">
+            <defs>
+              <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#74dfff"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="46" width="150" height="70" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="45" y="76" class="label">Landing page</text>
+            <text x="45" y="98" class="label-muted">public marketing</text>
+
+            <rect x="210" y="46" width="160" height="70" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="237" y="76" class="label">Auth / Example</text>
+            <text x="237" y="98" class="label-muted">sign in / sign up / demo</text>
+
+            <rect x="410" y="46" width="190" height="70" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="437" y="76" class="label">Onboarding steps</text>
+            <text x="437" y="98" class="label-muted">focus → baseline → habits → reality → constraints</text>
+
+            <rect x="640" y="46" width="132" height="70" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="668" y="76" class="label">Review</text>
+            <text x="668" y="98" class="label-muted">submit plan</text>
+
+            <rect x="792" y="46" width="128" height="70" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="817" y="76" class="label">Processing</text>
+            <text x="817" y="98" class="label-muted">workflow</text>
+
+            <rect x="80" y="228" width="780" height="96" rx="22" fill="#123049" stroke="#2f5a84"></rect>
+            <text x="110" y="262" class="label">Protected Workspace</text>
+            <text x="110" y="288" class="label-small">Overview • Profile • Plan • Reflection • Progress • Agent Runs • History • Settings</text>
+
+            <line x1="170" y1="81" x2="210" y2="81" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow2)"></line>
+            <line x1="370" y1="81" x2="410" y2="81" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow2)"></line>
+            <line x1="600" y1="81" x2="640" y2="81" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow2)"></line>
+            <line x1="772" y1="81" x2="792" y2="81" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow2)"></line>
+            <line x1="856" y1="116" x2="856" y2="228" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow2)"></line>
+          </svg>
+        </div>
+        <div class="card">
+          <h3>Why route-based structure is a good choice here</h3>
+          <p>
+            A planning product naturally has stages: discover, sign in, complete assessment, enter the
+            workspace, review history, edit settings, and so on. Route-based structure matches the user
+            journey better than putting everything on one giant page with hidden panels.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 6</p>
+          <h2>Root Layout and Providers</h2>
+        </div>
+        <p>
+          The first major architectural layer is the root layout and provider system. This is how the
+          app gives every page access to auth information, query caching, workspace state, and session
+          synchronization.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Main file: <code>src/app/layout.tsx</code></h3>
+            <p>
+              This is the outermost wrapper for the whole site. It imports global CSS, asks the server
+              who the current user is, and injects shared providers around the page tree.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Main file: <code>src/components/providers/app-providers.tsx</code></h3>
+            <p>
+              This file creates the shared provider stack used by the entire app: auth summary context,
+              React Query, the Supabase session bridge, and the workspace state provider.
+            </p>
+          </div>
+        </div>
+        <pre>export function AppProviders({
+  children,
+  clerkPublishableKey,
+  authSummary
+}: PropsWithChildren&lt;{
+  clerkPublishableKey?: string;
+  authSummary: AuthSummary;
+}&gt;)</pre>
+        <p>
+          In plain language, that function says: “Wrap the entire app in the systems it needs in order
+          to work.” It is like the project’s infrastructure harness.
+        </p>
+        <div class="card">
+          <h3>What each provider is doing</h3>
+          <ul>
+            <li><strong>AuthSummaryContext</strong>: gives the app a normalized view of who is logged in.</li>
+            <li><strong>QueryClientProvider</strong>: handles network request caching and mutation behavior.</li>
+            <li><strong>SupabaseSessionBridge</strong>: keeps the browser session and server session in sync.</li>
+            <li><strong>WorkspaceProvider</strong>: loads and saves the current user workspace.</li>
+            <li><strong>ClerkProvider</strong>: only added if Clerk is configured.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 7</p>
+          <h2>Authentication and Session Handling</h2>
+        </div>
+        <p>
+          LifeMax OS supports three auth modes: demo, Clerk, and Supabase. In practice, the live product
+          is designed to use Supabase, but the architecture can fall back to demo mode when credentials
+          are not configured.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3><code>src/lib/env.ts</code></h3>
+            <p>
+              Reads environment variables and sets readiness flags. This tells the app whether Supabase,
+              Clerk, OpenAI, and Inngest are actually available.
+            </p>
+          </div>
+          <div class="card">
+            <h3><code>src/lib/auth/config.ts</code></h3>
+            <p>
+              Chooses the auth mode. If Supabase env is present, auth mode becomes <code>supabase</code>.
+              If not, the app may use Clerk or demo mode instead.
+            </p>
+          </div>
+        </div>
+        <pre>export async function getAuthSummary(): Promise&lt;AuthSummary&gt;</pre>
+        <p>
+          The <code>getAuthSummary</code> function is one of the central normalization points in the
+          whole app. It hides the differences between auth providers and returns one consistent object:
+          mode, user id, and user profile.
+        </p>
+        <div class="card">
+          <h3>Why normalization matters</h3>
+          <p>
+            Without normalization, every part of the app would need separate logic for Supabase users,
+            Clerk users, and demo users. That creates duplication and bugs. By converting everything into
+            the same <code>AuthSummary</code> shape, the rest of the app can stay much simpler.
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>src/lib/auth/session.ts</code></td>
+              <td>Reads cookies, talks to Supabase or Clerk, and builds the normalized auth summary.</td>
+            </tr>
+            <tr>
+              <td><code>src/lib/supabase/client.ts</code></td>
+              <td>Creates the browser-side Supabase client used for sign-in, sign-up, and password reset.</td>
+            </tr>
+            <tr>
+              <td><code>src/lib/supabase/server.ts</code></td>
+              <td>Creates server-side and admin Supabase clients for secure reads and writes.</td>
+            </tr>
+            <tr>
+              <td><code>src/components/ui/supabase-auth-card.tsx</code></td>
+              <td>Renders the real sign-in/sign-up form with email and password.</td>
+            </tr>
+            <tr>
+              <td><code>src/components/ui/supabase-forgot-password-card.tsx</code></td>
+              <td>Sends a password reset email that redirects to the reset-password page.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 8</p>
+          <h2>Workspace State Management</h2>
+        </div>
+        <p>
+          The protected app is powered by a central state object representing the user’s workspace. This
+          state includes onboarding answers, the generated plan package, run history, check-ins, domain
+          updates, preferences, and session information.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Main types</h3>
+            <p>
+              These are defined in <code>src/lib/workspace/state.ts</code>. This file describes the shape
+              of the workspace using TypeScript types like <code>WorkspaceState</code>,
+              <code>WorkspacePreferences</code>, and <code>WorkspaceDiagnostics</code>.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Main controller</h3>
+            <p>
+              The browser-side controller is <code>src/components/providers/workspace-provider.tsx</code>.
+              It loads the state, saves the state, tracks save errors, and switches between protected
+              storage and demo/local fallback behavior.
+            </p>
+          </div>
+        </div>
+        <pre>export type WorkspaceState = {
+  browserId: string;
+  onboardingAnswers: Record&lt;string, unknown&gt;;
+  buildPackage: any | null;
+  latestRun: any | null;
+  history: WorkspaceHistoryItem[];
+  checkIns: WorkspaceCheckIn[];
+  domainUpdates: WorkspaceDomainUpdate[];
+  preferences: WorkspacePreferences;
+  session: WorkspaceSession;
+};</pre>
+        <p>
+          Even without reading every line of code, that type tells you a lot about the product. It tells
+          you that the workspace is not just a page. It is a structured object with its own memory,
+          history, planning result, and diagnostic metadata.
+        </p>
+        <pre>export function WorkspaceProvider({
+  children,
+  authSummary
+}: PropsWithChildren&lt;{ authSummary: AuthSummary }&gt;)</pre>
+        <p>
+          This provider does several important jobs:
+        </p>
+        <ul>
+          <li>Loads demo state from local storage if the app is in demo mode.</li>
+          <li>Fetches <code>/api/workspace</code> if the user is authenticated.</li>
+          <li>Saves updates back to <code>/api/workspace</code>.</li>
+          <li>Keeps diagnostics such as “connected”, “degraded”, or “error”.</li>
+          <li>Maintains a fallback local cache if protected saves fail.</li>
+        </ul>
+        <div class="callout">
+          <p>
+            This provider is the reason the dashboard can feel like a living workspace instead of a dead
+            static page. It is the central memory and persistence coordinator on the client side.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 9</p>
+          <h2>Onboarding Assessment Architecture</h2>
+        </div>
+        <p>
+          The onboarding flow is one of the best examples of structured architecture in this project.
+          Instead of hard-coding form controls on each page, the system separates question content,
+          validation rules, and rendering logic.
+        </p>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Content</h3>
+            <p><code>src/lib/content/onboarding.ts</code> defines the steps, question labels, notes, placeholders, and choices.</p>
+          </div>
+          <div class="card">
+            <h3>Validation</h3>
+            <p><code>src/lib/schemas/onboarding.ts</code> defines the data rules for the full draft and for each step.</p>
+          </div>
+          <div class="card">
+            <h3>UI</h3>
+            <p><code>src/components/onboarding/onboarding-step-client.tsx</code> renders the correct controls and handles the user interaction.</p>
+          </div>
+        </div>
+        <pre>export type StepDefinition = {
+  id: Exclude&lt;OnboardingStepId, "welcome" | "review" | "processing" | "complete"&gt;;
+  index: number;
+  title: string;
+  kicker: string;
+  description: string;
+  nextHref: Route;
+  prevHref: Route;
+  fields: FieldDefinition[];
+};</pre>
+        <p>
+          That type definition describes an onboarding page as data. Each step knows:
+        </p>
+        <ul>
+          <li>its own id</li>
+          <li>its order</li>
+          <li>its copy</li>
+          <li>where next and previous go</li>
+          <li>what fields it contains</li>
+        </ul>
+        <div class="card">
+          <h3>Why this is a strong design</h3>
+          <p>
+            Because the assessment is defined as structured content, the developer can change labels,
+            add options, or change order without rewriting the whole rendering engine. It also makes the
+            questionnaire easier to reason about than spreading question logic across many pages.
+          </p>
+        </div>
+        <pre>export function OnboardingStepClient({ stepId }: { stepId: StepDefinition["id"] })</pre>
+        <p>
+          This is the main engine behind each step. It looks up the correct step definition, loads any
+          existing draft state, builds the form, validates the current step, saves progress, and routes
+          the user to the next step.
+        </p>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 10</p>
+          <h2>Validation and Schemas</h2>
+        </div>
+        <p>
+          Validation is handled primarily by <strong>Zod</strong>. Zod is a schema library that lets the
+          project define exactly what shape of data is allowed. This matters because LifeMax OS is not a
+          casual contact form; it feeds user inputs into planning logic and persistent storage.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Schema files</h3>
+            <p>
+              <code>src/lib/schemas/onboarding.ts</code> covers onboarding answers and step-level validation.<br />
+              <code>src/lib/api/schemas.ts</code> covers request payloads for APIs like onboarding drafts,
+              plan generation, agent chat, and workspace state saving.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Why schema validation is essential here</h3>
+            <p>
+              Without schema validation, broken or incomplete data could flow into the planner, the
+              database, or the dashboard renderer. Zod stops that early and also makes error handling more
+              predictable.
+            </p>
+          </div>
+        </div>
+        <pre>export const planGenerateRequestSchema = z.object({
+  ownerKey: z.string().min(1),
+  authMode: authModeSchema,
+  previousState: z.unknown().optional().nullable(),
+  answers: onboardingAnswerSchema,
+  planningMode: z.enum(["stable", "ai"]).optional()
+});</pre>
+        <p>
+          That schema means a plan request must include:
+        </p>
+        <ul>
+          <li>who owns the request</li>
+          <li>what auth mode it came from</li>
+          <li>the actual onboarding answers</li>
+          <li>an optional planning mode choice</li>
+        </ul>
+        <p>
+          The project also uses schema validation on workspace snapshots. That is important because it
+          prevents malformed browser-side state from being saved back into the database.
+        </p>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 11</p>
+          <h2>Plan Generation Pipeline</h2>
+        </div>
+        <p>
+          Once onboarding is complete, the project’s main “intelligence pipeline” begins. The browser
+          sends a request to <code>/api/plan/generate</code>. That route validates the payload and then
+          forwards it to the central workflow resolver.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>API entry point</h3>
+            <p><code>src/app/api/plan/generate/route.ts</code> is the public server endpoint. It receives the request and starts the plan-generation process.</p>
+          </div>
+          <div class="card">
+            <h3>Workflow controller</h3>
+            <p><code>src/lib/workflows/generate-plan.ts</code> decides whether to use stable mode, the builder path, or the OpenAI multi-agent path.</p>
+          </div>
+        </div>
+        <pre>export async function executePlanGeneration(input: ExecutePlanGenerationInput)</pre>
+        <p>
+          This is one of the most important functions in the codebase. It is the orchestrator that:
+        </p>
+        <ul>
+          <li>determines the effective planning mode</li>
+          <li>runs intake analysis</li>
+          <li>optionally runs the OpenAI or builder workflow</li>
+          <li>falls back to the legacy planner path when appropriate</li>
+          <li>enriches the final result with metadata</li>
+          <li>persists the plan run</li>
+          <li>persists generated workspace artifacts for signed-in users</li>
+        </ul>
+        <div class="flow">
+          <svg viewBox="0 0 940 440" width="100%" role="img" aria-label="Plan generation flow">
+            <defs>
+              <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#74dfff"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="34" width="170" height="64" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="48" y="71" class="label">User answers</text>
+
+            <rect x="218" y="34" width="188" height="64" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="243" y="63" class="label">/api/plan/generate</text>
+            <text x="243" y="84" class="label-muted">validate request</text>
+
+            <rect x="436" y="34" width="210" height="64" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="460" y="63" class="label">executePlanGeneration</text>
+            <text x="460" y="84" class="label-muted">select workflow path</text>
+
+            <rect x="676" y="20" width="238" height="96" rx="20" fill="#123049" stroke="#2f5a84"></rect>
+            <text x="700" y="50" class="label">Stable path</text>
+            <text x="700" y="73" class="label-small">Legacy planner / builder</text>
+            <text x="700" y="95" class="label-muted">deterministic and production-safe</text>
+
+            <rect x="676" y="150" width="238" height="112" rx="20" fill="#123049" stroke="#2f5a84"></rect>
+            <text x="700" y="182" class="label">AI path</text>
+            <text x="700" y="205" class="label-small">OpenAI multi-agent workflow</text>
+            <text x="700" y="228" class="label-muted">deeper analysis, slower, more experimental</text>
+
+            <rect x="436" y="324" width="210" height="66" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="460" y="363" class="label">Enriched result</text>
+
+            <rect x="676" y="324" width="238" height="66" rx="18" fill="#102236" stroke="#2f5a84"></rect>
+            <text x="700" y="352" class="label">Persist run + workspace</text>
+            <text x="700" y="374" class="label-muted">history, profile, plans, settings, reflections</text>
+
+            <line x1="190" y1="66" x2="218" y2="66" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="406" y1="66" x2="436" y2="66" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="646" y1="66" x2="676" y2="66" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="541" y1="98" x2="541" y2="150" stroke="#74dfff" stroke-width="3"></line>
+            <line x1="541" y1="150" x2="676" y2="206" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="795" y1="262" x2="795" y2="324" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="541" y1="262" x2="541" y2="324" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+            <line x1="646" y1="357" x2="676" y2="357" stroke="#74dfff" stroke-width="3" marker-end="url(#arrow3)"></line>
+          </svg>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 12</p>
+          <h2>AI Runtime and Agent Orchestration</h2>
+        </div>
+        <p>
+          The AI path is not one simple “ask GPT a question” call. The project uses a specialized
+          runtime that defines multiple agents with separate responsibilities. This is why the product
+          can talk about profile synthesis, strategy planning, evaluation, and recommendation compilation
+          as distinct stages.
+        </p>
+        <div class="card">
+          <h3>Main file: <code>src/lib/agents/openai/lifemax-runtime.ts</code></h3>
+          <p>
+            This file defines the OpenAI-based multi-agent workflow. It sets up agent configurations,
+            stage names, models, output schemas, timeouts, and orchestration behavior.
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Agent / stage</th>
+              <th>What it does in plain English</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Intake / requirements gate</td>
+              <td>Checks whether the onboarding inputs are complete enough to safely plan from.</td>
+            </tr>
+            <tr>
+              <td>Personality assessment</td>
+              <td>Interprets motivation style, blind spots, and the coaching tone that will land best.</td>
+            </tr>
+            <tr>
+              <td>Profile synthesis</td>
+              <td>Builds the structured profile and preserves the hard baseline realities.</td>
+            </tr>
+            <tr>
+              <td>Profile builder / diagnostic agent</td>
+              <td>Produces diagnosis-style user intelligence such as bottlenecks and false assumptions.</td>
+            </tr>
+            <tr>
+              <td>Strategy planner</td>
+              <td>Creates the roadmap and phase sequencing.</td>
+            </tr>
+            <tr>
+              <td>Domain planning</td>
+              <td>Builds or refines plans for looks, health, career, finance, and routine.</td>
+            </tr>
+            <tr>
+              <td>Tracker agent</td>
+              <td>Turns plans into weekly execution structure and review prompts.</td>
+            </tr>
+            <tr>
+              <td>Testing and evaluation</td>
+              <td>Checks quality, risk, contradictions, and confidence.</td>
+            </tr>
+            <tr>
+              <td>Recommendation compiler</td>
+              <td>Packages the final operator-facing result and technical note set.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <p>
+            This multi-agent design is more ambitious than a single prompt, but it is also more complex.
+            That is why the product still exposes a stable mode. The architecture gives users a practical
+            reliable option and a richer experimental option.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 13</p>
+          <h2>Persistence and the Supabase Data Model</h2>
+        </div>
+        <p>
+          LifeMax OS uses Supabase for both authentication and protected data persistence. The project
+          intentionally keeps persistence logic on the server rather than letting the browser write
+          directly into database tables.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>API edge</h3>
+            <p>
+              <code>src/app/api/workspace/route.ts</code> is the authenticated entry point for loading and
+              saving the current workspace snapshot.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Repository layer</h3>
+            <p>
+              <code>src/lib/workspace/repository.ts</code> translates between database rows and the
+              browser-friendly workspace shape.
+            </p>
+          </div>
+        </div>
+        <pre>export async function GET() {
+  const authSummary = await getAuthSummary();
+  ...
+  const snapshot = await loadWorkspaceSnapshot(...);
+  return NextResponse.json(snapshot);
+}</pre>
+        <p>
+          The GET route means: “If a signed-in user exists, load their workspace data from Supabase,
+          reassemble it into the app’s workspace shape, and send it back to the browser.”
+        </p>
+        <pre>export async function PUT(request: NextRequest) {
+  const authSummary = await getAuthSummary();
+  ...
+  const parsed = workspaceStateRequestSchema.parse(body);
+  const snapshot = await persistWorkspaceSnapshot(...);
+  return NextResponse.json(snapshot);
+}</pre>
+        <p>
+          The PUT route means: “Validate the incoming workspace payload, force the session details to
+          match the authenticated user, then persist the data safely.”
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>profiles</code></td>
+              <td>User profile record, onboarding answers, and profile payload.</td>
+            </tr>
+            <tr>
+              <td><code>assessments</code></td>
+              <td>Structured record of a completed assessment and its result payload.</td>
+            </tr>
+            <tr>
+              <td><code>weekly_plans</code></td>
+              <td>Weekly planning payloads, tracker data, and execution system data.</td>
+            </tr>
+            <tr>
+              <td><code>agent_runs</code></td>
+              <td>Generated plan runs, workflow status, confidence, and result payloads.</td>
+            </tr>
+            <tr>
+              <td><code>domains</code></td>
+              <td>Per-domain plan or status data for looks, health, career, finance, and routine.</td>
+            </tr>
+            <tr>
+              <td><code>domain_progress_logs</code></td>
+              <td>Updates or proof logs tied to domain progress over time.</td>
+            </tr>
+            <tr>
+              <td><code>reflections</code></td>
+              <td>Daily and weekly reflection entries plus generated summaries.</td>
+            </tr>
+            <tr>
+              <td><code>user_settings</code></td>
+              <td>Appearance, planning mode, and other user preferences.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 14</p>
+          <h2>Dashboard Rendering and Workspace Pages</h2>
+        </div>
+        <p>
+          The dashboard is driven by two important files:
+        </p>
+        <ul>
+          <li><code>src/components/layout/app-shell.tsx</code></li>
+          <li><code>src/components/dashboard/app-data-view.tsx</code></li>
+        </ul>
+        <div class="grid-2">
+          <div class="card">
+            <h3><code>app-shell.tsx</code></h3>
+            <p>
+              This is the private app frame. It creates the sidebar, workspace status pills, account
+              panel, contextual action row, and the shared wrapper around all protected pages.
+            </p>
+          </div>
+          <div class="card">
+            <h3><code>app-data-view.tsx</code></h3>
+            <p>
+              This is the main rendering switchboard. It chooses which workspace view to render and
+              turns the saved state into cards, sections, progress displays, settings panels, and
+              history views.
+            </p>
+          </div>
+        </div>
+        <pre>type View =
+  | "overview"
+  | "profile"
+  | "plan"
+  | "reflection"
+  | "progress"
+  | "agent-runs"
+  | "history"
+  | "settings";</pre>
+        <p>
+          That single type tells you how the protected product is organized from the user’s point of
+          view. It is not one dashboard page with random widgets. It is a set of focused views inside a
+          shared application shell.
+        </p>
+        <div class="card">
+          <h3>Why <code>app-data-view.tsx</code> is large</h3>
+          <p>
+            It has to normalize plan payloads from different generations, support empty states, render
+            different sections for different routes, and keep compatibility with older saved runs. That
+            makes it one of the heaviest files in the repo, but also one of the most important.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 15</p>
+          <h2>Reflection and Progress Systems</h2>
+        </div>
+        <p>
+          LifeMax OS is not only about generating a plan. It is also about running the plan over time.
+          That is why the codebase includes dedicated reflection and progress systems.
+        </p>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Reflection workspace</h3>
+            <p>
+              <code>src/components/dashboard/reflection-workspace.tsx</code> contains the daily and
+              weekly reflection experience. It defines reflection categories, question sets, results
+              tabs, history rendering, and summary views.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Progress representation</h3>
+            <p>
+              Progress is reflected through domain updates, check-ins, milestones, tracker overlays, and
+              metrics shown in the workspace. This is how the app moves beyond “one-time AI output” into
+              an ongoing accountability product.
+            </p>
+          </div>
+        </div>
+        <pre>type ReflectionResult = {
+  entryId: string;
+  createdAt: string;
+  kind: CheckInMode;
+  categories: string[];
+  summary: DemoCheckInSummary;
+  domainChanges: Array&lt;{
+    domain: string;
+    before: number;
+    after: number;
+    note: string;
+  }&gt;;
+};</pre>
+        <p>
+          Even though this is just a type definition, it shows the product idea clearly: reflections are
+          not just journal text. They are structured entries that can affect domains and produce summaries.
+        </p>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 16</p>
+          <h2>Styling and the Design System</h2>
+        </div>
+        <p>
+          The visual identity of LifeMax OS is mostly defined in
+          <code>src/app/globals.css</code>. The app uses a dark blue / cyan direction, rounded cards,
+          pill-based status indicators, and a responsive grid/card layout system.
+        </p>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Theme</h3>
+            <p>
+              The project supports multiple appearance options such as sunrise, ember, and midnight.
+              Midnight is the main dark blue theme.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Shared primitives</h3>
+            <p>
+              Buttons, pills, cards, warning text, topbar actions, and workspace grids are all styled in
+              a centralized way to avoid page-by-page inconsistency.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Responsive behavior</h3>
+            <p>
+              The CSS uses grid rules, wrapping, width constraints, and spacing systems so the UI can
+              reflow on smaller screens instead of simply shrinking until it breaks.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Why CSS still matters in a React app</h3>
+          <p>
+            React controls structure and state, but CSS controls whether the product looks polished or
+            amateur. The recent UI cleanup work in this project mostly lived in CSS and layout classes:
+            consistent action rows, card widths, vertical rhythm, empty-state positioning, settings grid
+            fixes, and run-mode card behavior.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 17</p>
+          <h2>End-to-End Request and Data Flow</h2>
+        </div>
+        <p>
+          The easiest way to truly understand the project is to walk one complete user journey through
+          the code.
+        </p>
+        <div class="card">
+          <h3>Journey: a signed-in user creates a plan</h3>
+          <ol>
+            <li>The user signs in through the Supabase auth card.</li>
+            <li>The browser stores a session and syncs it to the server cookies.</li>
+            <li>The user completes the onboarding steps.</li>
+            <li>The current step form is validated with Zod through React Hook Form.</li>
+            <li>Draft state is saved as the user moves through steps.</li>
+            <li>On the review page, the app sends the final answers to <code>/api/plan/generate</code>.</li>
+            <li>The API validates the request and calls <code>executePlanGeneration</code>.</li>
+            <li>The workflow selects stable mode or AI mode.</li>
+            <li>A result package is produced and annotated with workflow metadata.</li>
+            <li>The run is saved to plan run history and also persisted into protected workspace tables.</li>
+            <li>The browser refreshes its workspace snapshot through the workspace provider.</li>
+            <li>The app shell and dashboard renderer show the new profile, plan, progress, and agent data.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Journey: the same user comes back later</h3>
+          <ol>
+            <li>The root layout loads and resolves the current user.</li>
+            <li>The protected app layout confirms the user is allowed into <code>/app</code>.</li>
+            <li>The workspace provider calls <code>/api/workspace</code>.</li>
+            <li>The repository loads tables from Supabase and reassembles them into a workspace snapshot.</li>
+            <li><code>app-data-view.tsx</code> turns that snapshot into the user-facing workspace.</li>
+            <li>The user can then log reflections, check history, review the plan, or change settings.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 18</p>
+          <h2>Major Component and Function Prototypes</h2>
+        </div>
+        <p>
+          This appendix focuses on the most important prototypes and what they mean, without diving into
+          every small helper function.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Prototype</th>
+              <th>Plain-English explanation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>getAuthSummary(): Promise&lt;AuthSummary&gt;</code></td>
+              <td>Returns the current logged-in user in one normalized shape, regardless of auth provider.</td>
+            </tr>
+            <tr>
+              <td><code>AppProviders({ children, clerkPublishableKey, authSummary })</code></td>
+              <td>Wraps the app in shared infrastructure providers like query caching and workspace state.</td>
+            </tr>
+            <tr>
+              <td><code>WorkspaceProvider({ children, authSummary })</code></td>
+              <td>Loads, saves, and diagnoses the current workspace state on the client side.</td>
+            </tr>
+            <tr>
+              <td><code>OnboardingStepClient({ stepId })</code></td>
+              <td>Renders one assessment step, validates it, saves draft progress, and routes to the next step.</td>
+            </tr>
+            <tr>
+              <td><code>SupabaseAuthCard({ mode })</code></td>
+              <td>Renders the sign-in or sign-up form for real authenticated users.</td>
+            </tr>
+            <tr>
+              <td><code>SupabaseForgotPasswordCard()</code></td>
+              <td>Sends a secure password reset email to the entered address.</td>
+            </tr>
+            <tr>
+              <td><code>POST(request: NextRequest)</code> in <code>/api/plan/generate</code></td>
+              <td>Receives plan generation requests from the browser and starts the workflow.</td>
+            </tr>
+            <tr>
+              <td><code>executePlanGeneration(input)</code></td>
+              <td>Central planning orchestrator that chooses the workflow path and persists results.</td>
+            </tr>
+            <tr>
+              <td><code>loadWorkspaceSnapshot({ userId, authMode, user })</code></td>
+              <td>Loads rows from Supabase and rebuilds the browser-friendly workspace shape.</td>
+            </tr>
+            <tr>
+              <td><code>persistWorkspaceSnapshot({ userId, authMode, user, state })</code></td>
+              <td>Saves a workspace snapshot into the protected storage model.</td>
+            </tr>
+            <tr>
+              <td><code>getBrowserSupabaseClient()</code></td>
+              <td>Creates the browser-side Supabase client when public env vars are available.</td>
+            </tr>
+            <tr>
+              <td><code>AppShell({ children, authSummary })</code></td>
+              <td>Builds the protected app frame around all main workspace views.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 19</p>
+          <h2>Deployment and Environment Model</h2>
+        </div>
+        <p>
+          The app is designed to run locally and on Vercel. The environment file model is very important
+          because missing configuration can change the app’s behavior drastically, especially around auth.
+        </p>
+        <div class="card">
+          <h3>Core production variables</h3>
+          <ul>
+            <li><code>NEXT_PUBLIC_SUPABASE_URL</code></li>
+            <li><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+            <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
+            <li><code>NEXT_PUBLIC_SITE_URL</code></li>
+            <li><code>OPENAI_API_KEY</code></li>
+            <li><code>LIFEMAX_AGENT_BACKEND</code></li>
+          </ul>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Why <code>NEXT_PUBLIC_*</code> variables exist</h3>
+            <p>
+              Variables with the <code>NEXT_PUBLIC_</code> prefix are allowed to be read by browser code.
+              This is necessary for browser-side Supabase auth, because the client must know the Supabase
+              project URL and public anon key.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Why service role is different</h3>
+            <p>
+              The service role key is more powerful and must only be used on the server. That is why the
+              repository and server client code live in server-only files.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Why the architecture is deployment-friendly</h3>
+          <p>
+            Next.js App Router, route handlers, Supabase auth, and environment-validated configuration are
+            a common and practical stack for Vercel deployment. The project’s major deployment problems
+            mostly came from configuration mismatches rather than the architecture itself.
+          </p>
+        </div>
+      </section>
+
+      <section class="page stack">
+        <div>
+          <p class="eyebrow">Section 20</p>
+          <h2>Glossary and Final Summary</h2>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Glossary</h3>
+            <ul>
+              <li><strong>Component</strong>: a reusable piece of UI.</li>
+              <li><strong>Route</strong>: a URL-backed page or API endpoint.</li>
+              <li><strong>Provider</strong>: a React wrapper that gives shared data or behavior to children.</li>
+              <li><strong>Schema</strong>: a formal definition of expected data shape.</li>
+              <li><strong>Persistence</strong>: saving data so it survives refreshes and later visits.</li>
+              <li><strong>Runtime</strong>: the environment where code executes.</li>
+              <li><strong>Auth</strong>: the identity and session system.</li>
+              <li><strong>State</strong>: the current data the app is holding in memory.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Final summary</h3>
+            <p>
+              LifeMax OS is a well-structured full-stack app. Its strongest architectural qualities are:
+            </p>
+            <ul>
+              <li>clear route separation</li>
+              <li>strong TypeScript data modeling</li>
+              <li>centralized validation with Zod</li>
+              <li>provider-based workspace state management</li>
+              <li>server-controlled persistence through Supabase</li>
+              <li>multiple planning backends behind one workflow interface</li>
+              <li>a private app shell that turns saved data into a product workspace</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <p>
+            The most important insight is this: LifeMax OS is not one big AI prompt wrapped in a pretty
+            page. It is a real product architecture. It has a page system, an auth system, a validation
+            system, a workflow system, a persistence system, and a workspace state system. The codebase is
+            designed to make those layers work together cleanly.
+          </p>
+        </div>
+        <p class="foot">
+          Report generated inside the repository at
+          <code>docs/architecture/lifemax-project-architecture-report.html</code>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
