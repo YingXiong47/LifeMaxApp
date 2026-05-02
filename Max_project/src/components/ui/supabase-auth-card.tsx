@@ -97,7 +97,7 @@ export function SupabaseAuthCard({ mode }: { mode: "sign-in" | "sign-up" }) {
               id="full-name"
               className="text-input"
               value={name}
-              placeholder="Example: Ismail Muhammad"
+              placeholder="Example: John Apple"
               onChange={(event) => setName(event.target.value)}
             />
           </div>
